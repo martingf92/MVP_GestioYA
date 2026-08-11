@@ -40,14 +40,18 @@ sobre-ingeniería. Objetivo: tener algo demostrable hacia fin de 2026.
   para simplificar el login del MVP — revisar cuando se construya Auth.
 
 ## Estado actual
-Repo publicado en `https://github.com/martingf92/MVP_GestioYA`. Proyecto NestJS
+Repo publicado en `https://github.com/martingf92/MVP_GestioYA`. Backend NestJS
 armado, con PostgreSQL 17 corriendo local (sin Docker, ver NOTAS.md entrega 3).
 Auth (JWT + refresh token) y Entidades (CRUD + cliente/proveedor) construidos y
 probados de punta a punta contra la base real, incluyendo aislamiento entre
-empresas — ver `NOTAS.md` (entregas 1 a 4) para el detalle completo.
+empresas. Frontend mínimo en `frontend/` (Next.js, sin diseño) con login y
+pantalla de Entidades, probado en el navegador — ver `NOTAS.md` (entregas 1 a
+5) para el detalle completo.
 
 ## Próximo paso
-Módulo de Productos.
+Módulo de Productos (backend). El frontend sigue en segundo plano: se le suma
+pantalla a cada módulo nuevo a medida que el backend lo soporta, sin invertir
+en diseño todavía.
 
 ## Documentos de referencia
 - `GESTIOYA.md` — contexto de producto completo, reglas del equipo, qué NO está

@@ -132,3 +132,41 @@ Crear entidad con cliente anidado → crear duplicado con mismo `documentoNro` (
 ## Siguiente paso sugerido
 
 Módulo de Productos.
+
+---
+
+# Entrega 5: frontend mínimo (Next.js) para pruebas manuales
+
+## Qué incluye esto
+
+- `frontend/` — proyecto Next.js aparte (App Router, TypeScript, Tailwind solo por conveniencia de armado rápido, sin inversión de diseño real) para que Martín pueda probar login y Entidades a mano en el navegador, no solo vía Postgres/curl.
+- `frontend/src/lib/api.ts` — cliente HTTP mínimo: login, listar/crear/borrar entidades, tokens en `localStorage`.
+- `frontend/src/app/login/page.tsx` — form de login.
+- `frontend/src/app/entidades/page.tsx` — listado + alta + baja lógica.
+- Backend: `app.enableCors()` en `main.ts` (origen configurable por `CORS_ORIGIN`, default `http://localhost:3001`).
+
+## Cómo correrlo
+
+Dos terminales:
+```
+npm run start:dev          # backend, puerto 3000
+cd frontend && npm run dev # frontend, puerto 3001
+```
+Abrir `http://localhost:3001`. Sin sesión redirige a `/login`. Usuario de prueba: `test@gestioya.local` / `nuevaPassword456` (ver entregas 3-4 para el porqué de esa contraseña).
+
+## Decisiones tomadas en esta entrega
+
+- **Repo único, carpeta `frontend/` separada** (no monorepo con workspaces de npm, no repo aparte): más simple para un equipo de una persona, sin la fricción de manejar dos repos o configurar workspaces todavía. Se revisa si en algún momento hace falta desplegar por separado con pipelines distintos.
+- **Tokens en `localStorage`, no httpOnly cookies**: es el frontend de prueba interno, no la versión que verían clientes reales. Antes de exponer esto a un cliente hay que revisar el manejo de tokens en el cliente (XSS, cookies httpOnly para el refresh token) — documentado como pendiente en el propio código (`api.ts`), no es un descuido.
+- **Sin refresh automático todavía**: si el access token vence (45min), el usuario tiene que volver a loguearse a mano. No se armó lógica de refresh silencioso en el cliente para no invertir tiempo de frontend antes de tener más pantallas que lo justifiquen (ver `CLAUDE.md`: frontend es prioridad baja por ahora). Es la primera cosa a mejorar cuando se retome frontend en serio.
+- **Sin RBAC en la UI**: cualquier usuario logueado ve el mismo botón de "dar de baja"; el backend ya exige `JwtAuthGuard` en todo el módulo de Entidades pero no hay controles de rol adicionales en Entidades (no aplica, no es admin-only). Consistente con el backend.
+
+## Probado
+
+Levantados ambos servidores, probado en el navegador real (Browser pane): login con el usuario de prueba → redirige a `/entidades` → lista los datos reales de la API → crear entidad nueva desde el form → aparece en la lista → dar de baja → queda `activo=no` → logout → vuelve a `/login` → acceso directo a `/entidades` sin sesión redirige a `/login`. Sin errores de CORS ni de consola.
+
+## Pendiente
+
+- Refresh automático de sesión en el cliente.
+- Manejo de tokens más seguro antes de un entorno no-interno.
+- El resto de los módulos del MVP no tienen pantalla todavía (solo Entidades).

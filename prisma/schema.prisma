@@ -1,0 +1,372 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// TENANCY
+// ============================================================
+// Empresa = tenant. Todo registro operativo cuelga de empresaId.
+//
+// Planes / Features / Limits (GESTIOYA.md sección 51 y 21): pendiente
+// de diseño explícito. NO se modela acá para no inventar una estructura
+// que todavía no fue definida. Cuando se defina, se agrega como
+// Empresa.planId -> Plan, sin tocar el resto del schema.
+model Empresa {
+  id       String   @id @default(uuid())
+  nombre   String
+  cuit     String?  @unique
+  activo   Boolean  @default(true)
+  creadoEn DateTime @default(now())
+
+  usuarios          Usuario[]
+  entidades         Entidad[]
+  productos         Producto[]
+  unidadesMedida    UnidadMedida[]
+  remitos           Remito[]
+  cuentasCorrientes CuentaCorriente[]
+  obligaciones      Obligacion[]
+  pagos             Pago[]
+  tareas            Tarea[]
+  logs              LogAccion[]
+}
+
+// ============================================================
+// SEGURIDAD
+// ============================================================
+model Usuario {
+  id        String   @id @default(uuid())
+  empresaId String
+  empresa   Empresa  @relation(fields: [empresaId], references: [id])
+  nombre    String
+  // Único a nivel global (no por empresa) por simplicidad del login del
+  // MVP: un formulario de login único sin selector de empresa previo.
+  // Trade-off: una misma persona no puede tener dos cuentas GestioYA con
+  // el mismo email en dos empresas distintas. Revisar cuando se diseñe
+  // el módulo de Auth -- si hace falta, se cambia a @@unique([empresaId, email]).
+  email     String   @unique
+  password  String
+  activo    Boolean  @default(true)
+  creadoEn  DateTime @default(now())
+
+  roles           UsuarioRol[]
+  tareasCreadas   Tarea[]        @relation("TareaCreadaPor")
+  tareasAsignadas Tarea[]        @relation("TareaResponsable")
+  logs            LogAccion[]
+  refreshTokens   RefreshToken[]
+
+  @@index([empresaId])
+}
+
+// No lleva empresaId ni queda en el allowlist de tenant.extension.ts a
+// propósito: se consulta durante el login/refresh, antes de que exista
+// empresaId en el AsyncLocalStorage (todavía no sabemos a qué empresa
+// pertenece el usuario en ese punto del flujo). El aislamiento por tenant
+// acá viene transitivamente de usuarioId -> Usuario.empresaId.
+model RefreshToken {
+  id        String   @id @default(uuid())
+  usuarioId String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  tokenHash String   @unique
+  expiraEn  DateTime
+  revocado  Boolean  @default(false)
+  creadoEn  DateTime @default(now())
+
+  @@index([usuarioId])
+}
+
+// Catálogo global de roles del sistema (admin, ventas, compras, finanzas...).
+// No lleva empresaId: es el mismo set de roles para toda la plataforma.
+// Si más adelante hace falta que cada empresa defina roles propios,
+// es un cambio de diseño a revisar explícitamente (decisión pendiente).
+model Rol {
+  id       String       @id @default(uuid())
+  nombre   String       @unique
+  usuarios UsuarioRol[]
+}
+
+model UsuarioRol {
+  id        String  @id @default(uuid())
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  rolId     String
+  rol       Rol     @relation(fields: [rolId], references: [id])
+
+  @@unique([usuarioId, rolId])
+}
+
+// ============================================================
+// ENTIDADES (clientes / proveedores)
+// ============================================================
+model Entidad {
+  id            String   @id @default(uuid())
+  empresaId     String
+  empresa       Empresa  @relation(fields: [empresaId], references: [id])
+  nombre        String
+  documentoTipo String?
+  documentoNro  String?
+  email         String?
+  telefono      String?
+  direccion     String?
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+
+  cliente         Cliente?
+  proveedor       Proveedor?
+  remitos         Remito[]
+  cuentaCorriente CuentaCorriente?
+  obligaciones    Obligacion[]
+  pagos           Pago[]
+  tareas          Tarea[]
+
+  // Único por empresa, no global (mismo criterio que Producto.sku): dos
+  // empresas distintas pueden tener cada una una entidad con el mismo CUIT.
+  // documentoNro nulo no colisiona con otro nulo (comportamiento estándar
+  // de unique constraints en Postgres) -- una entidad sin documento cargado
+  // no bloquea a otra sin documento.
+  @@unique([empresaId, documentoNro])
+  @@index([empresaId])
+}
+
+model Cliente {
+  entidadId     String  @id
+  entidad       Entidad @relation(fields: [entidadId], references: [id])
+  categoria     String?
+  observaciones String?
+}
+
+model Proveedor {
+  entidadId     String  @id
+  entidad       Entidad @relation(fields: [entidadId], references: [id])
+  cbu           String?
+  aliasCbu      String?
+  condicionPago String?
+  observaciones String?
+}
+
+// ============================================================
+// PRODUCTOS
+// ============================================================
+model UnidadMedida {
+  id          String  @id @default(uuid())
+  empresaId   String
+  empresa     Empresa @relation(fields: [empresaId], references: [id])
+  codigo      String
+  descripcion String
+  tipo        String?
+
+  productos Producto[]
+
+  // Único por empresa, no global: dos empresas distintas tienen que
+  // poder definir ambas un código "KG" sin pisarse.
+  @@unique([empresaId, codigo])
+}
+
+model Producto {
+  id             String       @id @default(uuid())
+  empresaId      String
+  empresa        Empresa      @relation(fields: [empresaId], references: [id])
+  nombre         String
+  sku            String?
+  unidadMedidaId String
+  unidadMedida   UnidadMedida @relation(fields: [unidadMedidaId], references: [id])
+  precioUnitario Decimal      @default(0) @db.Decimal(14, 2)
+  costo          Decimal      @default(0) @db.Decimal(14, 2)
+  stockMinimo    Decimal?     @default(0) @db.Decimal(14, 3)
+  activo         Boolean      @default(true)
+  creadoEn       DateTime     @default(now())
+
+  detallesRemito DetalleRemito[]
+
+  // Único por empresa, no global: el SKU original del starter kit era
+  // único a nivel de toda la base, lo cual rompía multi-tenancy (dos
+  // empresas no podrían usar el mismo código de producto).
+  @@unique([empresaId, sku])
+  @@index([empresaId])
+}
+
+// ============================================================
+// REMITOS
+// ============================================================
+model Remito {
+  id        String   @id @default(uuid())
+  empresaId String
+  empresa   Empresa  @relation(fields: [empresaId], references: [id])
+  numero    String?
+  tipo      String // 'E' = entrada | 'S' = salida
+  fecha     DateTime @default(now())
+  entidadId String?
+  entidad   Entidad? @relation(fields: [entidadId], references: [id])
+  estado    String   @default("borrador") // borrador | emitido | anulado
+  usuarioId String?
+
+  detalles DetalleRemito[]
+
+  @@index([empresaId])
+  @@index([empresaId, fecha])
+}
+
+model DetalleRemito {
+  id             String   @id @default(uuid())
+  remitoId       String
+  remito         Remito   @relation(fields: [remitoId], references: [id], onDelete: Cascade)
+  productoId     String
+  producto       Producto @relation(fields: [productoId], references: [id])
+  cantidad       Decimal  @db.Decimal(14, 3)
+  precioUnitario Decimal  @db.Decimal(14, 2)
+  subtotal       Decimal  @db.Decimal(14, 2)
+}
+
+// ============================================================
+// CUENTAS CORRIENTES, OBLIGACIONES Y PAGOS
+// ============================================================
+model CuentaCorriente {
+  id            String   @id @default(uuid())
+  empresaId     String
+  empresa       Empresa  @relation(fields: [empresaId], references: [id])
+  entidadId     String   @unique
+  entidad       Entidad  @relation(fields: [entidadId], references: [id])
+  saldoActual   Decimal  @default(0) @db.Decimal(14, 2)
+  moneda        String   @default("ARS")
+  actualizadoEn DateTime @updatedAt
+
+  movimientos MovimientoCuenta[]
+
+  @@index([empresaId])
+}
+
+model MovimientoCuenta {
+  id                String          @id @default(uuid())
+  cuentaCorrienteId String
+  cuentaCorriente   CuentaCorriente @relation(fields: [cuentaCorrienteId], references: [id], onDelete: Cascade)
+  fecha             DateTime        @default(now())
+  tipo              String // debe | haber | ajuste
+  concepto          String?
+  referenciaId      String?
+  monto             Decimal         @db.Decimal(14, 2)
+  saldoResultante   Decimal         @db.Decimal(14, 2)
+  usuarioId         String?
+}
+
+model Obligacion {
+  id               String    @id @default(uuid())
+  empresaId        String
+  empresa          Empresa   @relation(fields: [empresaId], references: [id])
+  entidadId        String
+  entidad          Entidad   @relation(fields: [entidadId], references: [id])
+  tipo             String?
+  descripcion      String?
+  fechaEmision     DateTime  @default(now())
+  fechaVencimiento DateTime?
+  monto            Decimal   @db.Decimal(14, 2)
+  moneda           String    @default("ARS")
+  estado           String    @default("pendiente") // pendiente | parcial | cancelada | vencida
+  pagoId           String?
+  pago             Pago?     @relation(fields: [pagoId], references: [id])
+  prioridad        String?
+
+  @@index([empresaId])
+  @@index([empresaId, estado, fechaVencimiento])
+}
+
+model Pago {
+  id                String   @id @default(uuid())
+  empresaId         String
+  empresa           Empresa  @relation(fields: [empresaId], references: [id])
+  entidadId         String?
+  entidad           Entidad? @relation(fields: [entidadId], references: [id])
+  fecha             DateTime @default(now())
+  medio             String?
+  monto             Decimal  @db.Decimal(14, 2)
+  moneda            String   @default("ARS")
+  estado            String   @default("confirmado") // pendiente | confirmado | rechazado
+  referenciaExterna String?
+
+  obligaciones Obligacion[]
+  cheques      Cheque[]
+
+  @@index([empresaId])
+}
+
+model Cheque {
+  id           String    @id @default(uuid())
+  pagoId       String
+  pago         Pago      @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+  numero       String?
+  banco        String?
+  fechaEmision DateTime?
+  fechaCobro   DateTime?
+  monto        Decimal?  @db.Decimal(14, 2)
+  estado       String? // en_cartera | depositado | rechazado | aplicado
+}
+
+// ============================================================
+// TAREAS Y NOTIFICACIONES
+// ============================================================
+model Tarea {
+  id                   String    @id @default(uuid())
+  empresaId            String
+  empresa              Empresa   @relation(fields: [empresaId], references: [id])
+  titulo               String
+  descripcion          String?
+  entidadId            String?
+  entidad              Entidad?  @relation(fields: [entidadId], references: [id])
+  fechaVencimiento     DateTime?
+  estado               String    @default("abierta") // abierta | en_proceso | cumplida | vencida
+  prioridad            String?
+  usuarioResponsableId String?
+  usuarioResponsable   Usuario?  @relation("TareaResponsable", fields: [usuarioResponsableId], references: [id])
+  creadaPorUsuarioId   String?
+  creadaPorUsuario     Usuario?  @relation("TareaCreadaPor", fields: [creadaPorUsuarioId], references: [id])
+
+  notificaciones Notificacion[]
+
+  @@index([empresaId])
+  @@index([empresaId, fechaVencimiento, estado])
+}
+
+model Notificacion {
+  id              String    @id @default(uuid())
+  tareaId         String
+  tarea           Tarea     @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  canal           String // app | email | sms | whatsapp
+  fechaProgramada DateTime
+  fechaEnviada    DateTime?
+  estado          String    @default("pendiente") // pendiente | enviada | fallida
+  payload         Json?
+}
+
+// ============================================================
+// AUDITORÍA
+// ============================================================
+model LogAccion {
+  id         String   @id @default(uuid())
+  // Opcional: permite loguear acciones de plataforma que no pertenecen
+  // a ninguna empresa puntual (ej. un ajuste hecho por el equipo de
+  // Byte Ecosistemas). Todo log operativo normal SÍ lleva empresaId.
+  empresaId  String?
+  empresa    Empresa? @relation(fields: [empresaId], references: [id])
+  tabla      String
+  registroId String
+  accion     String
+  fecha      DateTime @default(now())
+  usuarioId  String?
+  usuario    Usuario? @relation(fields: [usuarioId], references: [id])
+  diffJson   Json?
+
+  @@index([empresaId, tabla, registroId])
+}
+
+// ============================================================
+// EXCLUIDO DEL MVP (decisión, no olvido)
+// ============================================================
+// Factura / DetalleFactura / FacturaRemito: el propio MER extendido los
+// marca como "opcional, para crecer a futuro" y no están en la lista de
+// módulos del MVP (GESTIOYA.md sección 25: Entidades, Productos, Remitos,
+// Cuentas, Tareas). No se modelan todavía. Se agregan como una extensión
+// del schema el día que se confirme que entran al alcance, sin romper
+// nada de lo ya construido.

@@ -6,11 +6,12 @@ import {
 } from '@nestjs/common';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { EntidadesModule } from './entidades/entidades.module';
 import { AuthMiddleware } from './common/auth/auth.middleware';
 import { TenantMiddleware } from './common/tenant/tenant.middleware';
 
 @Module({
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, EntidadesModule],
   providers: [AuthMiddleware, TenantMiddleware],
 })
 export class AppModule implements NestModule {

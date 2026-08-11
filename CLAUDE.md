@@ -40,17 +40,17 @@ sobre-ingeniería. Objetivo: tener algo demostrable hacia fin de 2026.
   para simplificar el login del MVP — revisar cuando se construya Auth.
 
 ## Estado actual
-Proyecto NestJS armado, con PostgreSQL 17 corriendo local (sin Docker, ver
-NOTAS.md entrega 3). `prisma/schema.prisma`, la capa de aislamiento de tenant
-y el módulo de Auth (JWT + refresh token) están construidos y probados de
-punta a punta contra la base real (login, refresh con rotación, cambio de
-password admin, logout) — ver `NOTAS.md` (entregas 1, 2 y 3) para el detalle
-completo.
+Repo publicado en `https://github.com/martingf92/MVP_GestioYA`. Proyecto NestJS
+armado, con PostgreSQL 17 corriendo local (sin Docker, ver NOTAS.md entrega 3).
+Auth (JWT + refresh token) y Entidades (CRUD + cliente/proveedor) construidos y
+probados de punta a punta contra la base real, incluyendo aislamiento entre
+empresas — ver `NOTAS.md` (entregas 1 a 4) para el detalle completo.
 
 ## Próximo paso
-Módulo de Entidades (clientes/proveedores).
+Módulo de Productos.
 
 ## Documentos de referencia
 - `GESTIOYA.md` — contexto de producto completo, reglas del equipo, qué NO está
   definido todavía (sección 50).
-- `NOTAS.md` — decisiones y pendientes de la entrega del schema.
+- `NOTAS.md` — decisiones y pendientes de cada entrega.
+- Repo: `https://github.com/martingf92/MVP_GestioYA`.

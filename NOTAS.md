@@ -90,3 +90,45 @@ Módulo de Entidades (clientes/proveedores).
 ## Pendiente
 
 - Nada bloqueante para seguir. `JWT_SECRET` de desarrollo sigue pendiente de reemplazo antes de cualquier ambiente real (ver entrega 2).
+
+---
+
+# Entrega 4: repo en GitHub + módulo de Entidades
+
+## Qué incluye esto
+
+- Repo inicializado y publicado en `https://github.com/martingf92/MVP_GestioYA` (commit inicial con todo lo de las entregas 1-3).
+- `prisma/schema.prisma` — se agregó `@@unique([empresaId, documentoNro])` en `Entidad`.
+- `src/entidades/` — CRUD completo: `entidades.module.ts`, `entidades.controller.ts`, `entidades.service.ts`, DTOs (`create-entidad`, `update-entidad`, `create-cliente`, `create-proveedor`, `list-entidades-query`).
+- `scripts/seed-test2.ts` — segunda empresa/usuario de prueba, usado para probar aislamiento entre tenants.
+
+## Endpoints
+
+```
+POST   /entidades                  crear (nombre + datos base; cliente/proveedor opcionales anidados)
+GET    /entidades                   listar (filtros: nombre, activo, tipo=cliente|proveedor; skip/take)
+GET    /entidades/:id               detalle
+PATCH  /entidades/:id               actualizar datos base
+DELETE /entidades/:id               baja lógica (activo=false)
+PUT    /entidades/:id/cliente       crear o actualizar datos de cliente
+DELETE /entidades/:id/cliente
+PUT    /entidades/:id/proveedor     crear o actualizar datos de proveedor
+DELETE /entidades/:id/proveedor
+```
+
+Todas requieren `JwtAuthGuard` (usuario autenticado, cualquier rol).
+
+## Decisiones tomadas en esta entrega
+
+- **`documentoNro` único por empresa** (`@@unique([empresaId, documentoNro])`), confirmado explícitamente: una misma empresa no puede cargar dos entidades con el mismo número de documento. `documentoNro` nulo no colisiona con otro nulo (comportamiento estándar de Postgres en unique constraints) — una entidad sin documento cargado no bloquea a otra en la misma situación. String vacío se normaliza a `undefined` antes de guardar, para que no choque contra ese mismo constraint.
+- **`DELETE /entidades/:id` es baja lógica** (`activo=false`), no borrado físico — ver razón en la propuesta original (FKs de Remito/CuentaCorriente/Obligacion/Pago/Tarea sin cascade, y no tiene sentido perder historial).
+- **Gap real encontrado y cerrado**: `Cliente` y `Proveedor` no tienen `empresaId` propio y no están en el allowlist de `tenant.extension.ts` (no pueden estarlo, no tienen esa columna). Una query directa por `entidadId` en esos dos modelos no queda aislada por tenant sola. Se resolvió con un chequeo explícito (`assertEntidadExists`) que confirma, vía `db.entidad` (que sí es tenant-scoped), que la entidad pertenece a la empresa actual antes de tocar su cliente/proveedor. **Probado**: la empresa B no pudo ni leer ni modificar una entidad de la empresa A a través de estos sub-recursos (ver pruebas abajo).
+- **Cast de tipos en `create()`**: el tipo generado por Prisma para `Entidad.create` exige `empresaId` o la relación `empresa`, porque no sabe que `tenant.extension.ts` lo inyecta en runtime. Se castea el `data` (mismo escape hatch que ya usa la extensión), documentado en el código.
+
+## Probado end-to-end contra el servidor real y Postgres
+
+Crear entidad con cliente anidado → crear duplicado con mismo `documentoNro` (rechazado, 409) → listar con filtro `tipo=cliente` → detalle → actualizar → agregar proveedor a la misma entidad → eliminar proveedor → baja lógica de la entidad (sigue existiendo, `activo=false`) → **aislamiento**: usuario de la empresa B no puede ver la entidad de la empresa A (404), no puede escribirle un `cliente` (404), y su propio listado da 0 resultados → sin token, 401. Los 10 pasos dieron el resultado esperado.
+
+## Siguiente paso sugerido
+
+Módulo de Productos.

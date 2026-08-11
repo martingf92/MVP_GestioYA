@@ -170,3 +170,42 @@ Levantados ambos servidores, probado en el navegador real (Browser pane): login 
 - Refresh automático de sesión en el cliente.
 - Manejo de tokens más seguro antes de un entorno no-interno.
 - El resto de los módulos del MVP no tienen pantalla todavía (solo Entidades).
+
+---
+
+# Entrega 6: módulo de Productos (+ Unidades de Medida)
+
+## Qué incluye esto
+
+- `src/unidades-medida/` — CRUD mínimo: crear, listar, eliminar.
+- `src/productos/` — CRUD completo: crear, listar (filtros nombre/activo + paginado), detalle, actualizar, baja lógica.
+- No hubo cambios de schema — `Producto` y `UnidadMedida` ya estaban completos desde la entrega 1.
+
+## Endpoints
+
+```
+POST   /unidades-medida         crear
+GET    /unidades-medida          listar
+DELETE /unidades-medida/:id      eliminar (borrado físico, bloqueado si está en uso)
+
+POST   /productos                crear (requiere unidadMedidaId válida y de la propia empresa)
+GET    /productos                 listar (filtros: nombre, activo; paginado)
+GET    /productos/:id             detalle (incluye unidadMedida)
+PATCH  /productos/:id             actualizar
+DELETE /productos/:id             baja lógica (activo=false)
+```
+
+## Decisiones tomadas en esta entrega
+
+- **`UnidadMedida` no tiene `activo`** (no está en el schema, no se inventó): `DELETE` es borrado físico real. Si hay productos usándola, Postgres lo bloquea por la FK y se traduce a un 409 prolijo en vez de un error crudo de Postgres.
+- **Mismo gap de aislamiento que en Entidades, encontrado antes de escribir código esta vez** (por el precedente de la entrega 4): `unidadMedidaId` viaja en el body de `POST/PATCH /productos`, así que nada impide de por sí mandar el id de una unidad de otra empresa. Se resolvió igual que con Cliente/Proveedor: `assertUnidadMedidaExists` valida vía `db.unidadMedida` (tenant-scoped) antes de crear o actualizar. Diferencia con el caso anterior: acá el error es `400 Bad Request` (el campo inválido va en el body), no `404` (no es el recurso de la URL).
+- **`UnidadMedida` es un catálogo compartido por producto**, no un dato que cuelgue de cada producto individualmente — confirmado explícitamente con Martín (ejemplo: "Kg", "Unidad", "Docena" se cargan una vez por empresa y varios productos comparten la misma fila). Es el modelo que ya traía el schema original, no un cambio.
+- **Alta de UnidadMedida "al vuelo" desde el form de producto: pospuesta**, queda para revisar la UX una vez haya un primer cliente real probando el MVP, no antes.
+
+## Probado end-to-end contra el servidor real y Postgres
+
+Crear unidad "KG" → duplicada (mismo código, 409) → crear producto con esa unidad → SKU duplicado (409) → `unidadMedidaId` inventado (400) → listado incluye la unidad anidada → actualizar precio → intentar borrar la unidad en uso (409, bloqueada por FK) → baja lógica del producto (`activo=false`) → **aislamiento**: la empresa B no puede crear un producto usando el `unidadMedidaId` de la empresa A (400) y su propio listado de unidades da 0. Los 10 pasos dieron el resultado esperado.
+
+## Siguiente paso sugerido
+
+Módulo de Remitos (depende de Entidad y Producto, ambos ya listos).

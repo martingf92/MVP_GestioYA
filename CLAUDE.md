@@ -45,8 +45,9 @@ armado, con PostgreSQL 17 corriendo local (sin Docker, ver NOTAS.md entrega 3).
 Auth (JWT + refresh token), Entidades (CRUD + cliente/proveedor), Unidades de
 Medida, Productos y Remitos (con ciclo de vida borrador/emitido/anulado)
 construidos y probados de punta a punta contra la base real, incluyendo
-aislamiento entre empresas. Frontend mínimo en `frontend/` (Next.js, sin
-diseño) con login y pantalla de Entidades — ver `NOTAS.md` (entregas 1 a 7)
+aislamiento entre empresas. Frontend en `frontend/` (Next.js, sin diseño) con
+login y pantallas de Entidades, Productos, Unidades de Medida y Remitos,
+probado de punta a punta en el navegador — ver `NOTAS.md` (entregas 1 a 8)
 para el detalle completo.
 
 ## Próximo paso

@@ -21,6 +21,45 @@ export interface Entidad {
   proveedor: { cbu: string | null } | null;
 }
 
+export interface UnidadMedida {
+  id: string;
+  codigo: string;
+  descripcion: string;
+  tipo: string | null;
+}
+
+export interface Producto {
+  id: string;
+  nombre: string;
+  sku: string | null;
+  unidadMedidaId: string;
+  unidadMedida?: UnidadMedida;
+  precioUnitario: string;
+  costo: string;
+  stockMinimo: string | null;
+  activo: boolean;
+}
+
+export interface DetalleRemito {
+  id: string;
+  productoId: string;
+  producto: Producto;
+  cantidad: string;
+  precioUnitario: string;
+  subtotal: string;
+}
+
+export interface Remito {
+  id: string;
+  numero: string | null;
+  tipo: 'E' | 'S';
+  fecha: string;
+  entidadId: string | null;
+  entidad: Entidad | null;
+  estado: 'borrador' | 'emitido' | 'anulado';
+  detalles: DetalleRemito[];
+}
+
 // Guardado en localStorage a propósito: esto es un frontend de prueba
 // interno, no la versión final. Antes de exponer esto a clientes reales
 // conviene revisar el manejo de tokens en el cliente (XSS, httpOnly cookies
@@ -123,4 +162,81 @@ export function createEntidad(input: {
 
 export function deleteEntidad(id: string) {
   return request<void>(`/entidades/${id}`, { method: 'DELETE' });
+}
+
+export function listUnidadesMedida() {
+  return request<UnidadMedida[]>('/unidades-medida');
+}
+
+export function createUnidadMedida(input: {
+  codigo: string;
+  descripcion: string;
+  tipo?: string;
+}) {
+  return request<UnidadMedida>('/unidades-medida', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteUnidadMedida(id: string) {
+  return request<void>(`/unidades-medida/${id}`, { method: 'DELETE' });
+}
+
+export function listProductos() {
+  return request<{ data: Producto[]; total: number }>('/productos');
+}
+
+export function createProducto(input: {
+  nombre: string;
+  sku?: string;
+  unidadMedidaId: string;
+  precioUnitario?: number;
+  costo?: number;
+}) {
+  return request<Producto>('/productos', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteProducto(id: string) {
+  return request<void>(`/productos/${id}`, { method: 'DELETE' });
+}
+
+export function listRemitos() {
+  return request<{ data: Remito[]; total: number }>('/remitos');
+}
+
+export function getRemito(id: string) {
+  return request<Remito>(`/remitos/${id}`);
+}
+
+export function createRemito(input: {
+  tipo: 'E' | 'S';
+  entidadId?: string;
+  detalles: { productoId: string; cantidad: number; precioUnitario: number }[];
+}) {
+  return request<Remito>('/remitos', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateRemitoDetalles(
+  id: string,
+  detalles: { productoId: string; cantidad: number; precioUnitario: number }[],
+) {
+  return request<Remito>(`/remitos/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ detalles }),
+  });
+}
+
+export function emitirRemito(id: string) {
+  return request<Remito>(`/remitos/${id}/emitir`, { method: 'POST' });
+}
+
+export function anularRemito(id: string) {
+  return request<Remito>(`/remitos/${id}/anular`, { method: 'POST' });
 }

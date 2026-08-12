@@ -3,31 +3,30 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Entidad,
+  UnidadMedida,
   ApiError,
   getUsuario,
   clearSession,
-  listEntidades,
-  createEntidad,
-  deleteEntidad,
+  listUnidadesMedida,
+  createUnidadMedida,
+  deleteUnidadMedida,
 } from '@/lib/api';
 import Nav from '@/components/Nav';
 
-export default function EntidadesPage() {
+export default function UnidadesMedidaPage() {
   const router = useRouter();
-  const [entidades, setEntidades] = useState<Entidad[]>([]);
+  const [unidades, setUnidades] = useState<UnidadMedida[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [nombre, setNombre] = useState('');
-  const [documentoNro, setDocumentoNro] = useState('');
+  const [codigo, setCodigo] = useState('');
+  const [descripcion, setDescripcion] = useState('');
   const [creating, setCreating] = useState(false);
 
   async function refresh() {
     setLoading(true);
     setError(null);
     try {
-      const res = await listEntidades();
-      setEntidades(res.data);
+      setUnidades(await listUnidadesMedida());
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         clearSession();
@@ -54,12 +53,9 @@ export default function EntidadesPage() {
     setCreating(true);
     setError(null);
     try {
-      await createEntidad({
-        nombre,
-        documentoNro: documentoNro || undefined,
-      });
-      setNombre('');
-      setDocumentoNro('');
+      await createUnidadMedida({ codigo, descripcion });
+      setCodigo('');
+      setDescripcion('');
       await refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Error de conexión');
@@ -71,7 +67,7 @@ export default function EntidadesPage() {
   async function handleDelete(id: string) {
     setError(null);
     try {
-      await deleteEntidad(id);
+      await deleteUnidadMedida(id);
       await refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Error de conexión');
@@ -81,23 +77,24 @@ export default function EntidadesPage() {
   return (
     <main className="mx-auto max-w-3xl p-6">
       <Nav />
-      <h1 className="mb-6 text-xl font-semibold">Entidades</h1>
+      <h1 className="mb-6 text-xl font-semibold">Unidades de medida</h1>
 
       <form onSubmit={handleCreate} className="mb-8 flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1 text-sm">
-          Nombre
+          Código (ej. KG, UN, DOC)
           <input
             required
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
+            value={codigo}
+            onChange={(e) => setCodigo(e.target.value)}
             className="rounded border px-2 py-1"
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          Documento (opcional)
+          Descripción
           <input
-            value={documentoNro}
-            onChange={(e) => setDocumentoNro(e.target.value)}
+            required
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
             className="rounded border px-2 py-1"
           />
         </label>
@@ -106,7 +103,7 @@ export default function EntidadesPage() {
           disabled={creating}
           className="rounded bg-black px-3 py-2 text-sm text-white disabled:opacity-50"
         >
-          {creating ? 'Creando…' : 'Crear entidad'}
+          {creating ? 'Creando…' : 'Crear unidad'}
         </button>
       </form>
 
@@ -114,30 +111,26 @@ export default function EntidadesPage() {
 
       {loading ? (
         <p>Cargando…</p>
-      ) : entidades.length === 0 ? (
-        <p className="text-gray-500">No hay entidades todavía.</p>
+      ) : unidades.length === 0 ? (
+        <p className="text-gray-500">No hay unidades de medida todavía.</p>
       ) : (
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b text-left">
-              <th className="py-2">Nombre</th>
-              <th className="py-2">Documento</th>
-              <th className="py-2">Activo</th>
+              <th className="py-2">Código</th>
+              <th className="py-2">Descripción</th>
               <th className="py-2"></th>
             </tr>
           </thead>
           <tbody>
-            {entidades.map((e) => (
-              <tr key={e.id} className="border-b">
-                <td className="py-2">{e.nombre}</td>
-                <td className="py-2">{e.documentoNro ?? '—'}</td>
-                <td className="py-2">{e.activo ? 'sí' : 'no'}</td>
+            {unidades.map((u) => (
+              <tr key={u.id} className="border-b">
+                <td className="py-2">{u.codigo}</td>
+                <td className="py-2">{u.descripcion}</td>
                 <td className="py-2 text-right">
-                  {e.activo && (
-                    <button onClick={() => handleDelete(e.id)} className="underline">
-                      dar de baja
-                    </button>
-                  )}
+                  <button onClick={() => handleDelete(u.id)} className="underline">
+                    eliminar
+                  </button>
                 </td>
               </tr>
             ))}

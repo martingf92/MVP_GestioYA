@@ -253,3 +253,35 @@ Crear remito de salida con una línea → editar cabecera en "borrador" → emit
 ## Siguiente paso sugerido
 
 Módulo de Cuentas (incluye Obligaciones/Pagos/Cheques) -- el último del MVP backend.
+
+---
+
+# Entrega 8: frontend de Unidades de Medida, Productos y Remitos
+
+## Qué incluye esto
+
+- `frontend/src/components/Nav.tsx` — barra de navegación compartida entre todas las pantallas (Entidades, Productos, Unidades de medida, Remitos + usuario/salir), reemplaza el bloque de logout que estaba duplicado en cada página.
+- `frontend/src/app/unidades-medida/page.tsx` — alta, listado, eliminación.
+- `frontend/src/app/productos/page.tsx` — alta (con selector de unidad de medida), listado, baja lógica.
+- `frontend/src/app/remitos/page.tsx` — listado.
+- `frontend/src/app/remitos/nuevo/page.tsx` — alta con líneas de detalle dinámicas (agregar/quitar), selectores de entidad y producto poblados desde la API (solo activos).
+- `frontend/src/app/remitos/[id]/page.tsx` — detalle: si está en "borrador" permite editar/agregar/quitar líneas y guardar (PATCH), botón "Emitir"; si está "emitido" o "anulado" el detalle queda de solo lectura; botón "Anular" disponible salvo que ya esté anulado.
+- `frontend/src/lib/api.ts` — se agregaron tipos y funciones para `UnidadMedida`, `Producto`, `Remito`/`DetalleRemito`.
+
+## Bug encontrado y corregido durante las pruebas (no estaba en el plan original)
+
+Al navegar directo a `/remitos/[id]` (URL directa o recarga de página, no click interno), React tiraba `Hydration failed` en consola. Causa: `Nav.tsx` leía `localStorage` (vía `getUsuario()`) directo en el cuerpo del render -- el servidor no tiene `localStorage`, así que el HTML que arma el server (sin usuario) no coincidía con el que arma el cliente (con usuario). React se recuperaba solo (por eso no se veía roto en pantalla), pero es un error real que se iba a disparar en cualquier recarga o entrada por URL directa estando logueado. Se corrigió arrancando `usuario` en `null` y seteándolo recién en un `useEffect` (patrón estándar para evitar mismatches de hidratación con datos que solo existen en el cliente). Reprobado en una pestaña nueva (sin caché de JS vieja) contra el servidor reiniciado: sin errores de consola.
+
+## Decisiones tomadas en esta entrega
+
+- **Edición de líneas de un remito "borrador" se hace reemplazando el array completo** al guardar (mismo criterio que ya tiene el backend), no hay diff línea por línea en el cliente tampoco -- consistente, simple.
+- **Los selectores de entidad/producto en el alta de remito solo muestran activos** (filtrados en el cliente después de traer la lista completa) -- no tiene sentido ofrecer para elegir algo que el backend va a rechazar.
+- **Sin pantalla para Unidades de Medida "al vuelo" desde el form de Producto**: si no hay ninguna unidad cargada, la página de Productos muestra un aviso con link a Unidades de medida en vez de dejar crear el producto sin unidad -- consistente con la decisión ya tomada en la entrega 6.
+
+## Probado end-to-end en el navegador real (Browser pane)
+
+Login → Unidades de medida (ver la existente) → Productos (ver existentes + crear una nueva desde el form) → Remitos: crear con entidad y producto seleccionados desde los dropdowns → detalle en "borrador" con total correcto → Emitir (detalle pasa a solo lectura, solo queda "Anular") → Anular (sin acciones disponibles) → edición de líneas en un remito distinto que seguía en "borrador" (cambio de cantidad, "Guardar cambios", total actualizado) → navegación directa por URL sin errores de hidratación tras el fix. Sin errores de consola en ningún paso.
+
+## Siguiente paso sugerido
+
+Módulo de Cuentas (backend). El frontend queda con Entidades, Productos, Unidades de Medida y Remitos cubiertos.

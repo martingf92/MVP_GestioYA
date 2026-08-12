@@ -7,9 +7,10 @@ import {
   Post,
   Query,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { RemitosService } from './remitos.service';
 import { CreateRemitoDto } from './dto/create-remito.dto';
 import { UpdateRemitoDto } from './dto/update-remito.dto';
@@ -34,6 +35,14 @@ export class RemitosController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.remitosService.findOne(id);
+  }
+
+  @Get(':id/pdf')
+  async descargarPdf(@Param('id') id: string, @Res() res: Response) {
+    const buffer = await this.remitosService.generatePdf(id);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="remito-${id.slice(0, 8)}.pdf"`);
+    res.send(buffer);
   }
 
   @Patch(':id')

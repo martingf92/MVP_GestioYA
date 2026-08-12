@@ -13,6 +13,7 @@ import {
   updateRemitoDetalles,
   emitirRemito,
   anularRemito,
+  downloadRemitoPdf,
 } from '@/lib/api';
 import Nav from '@/components/Nav';
 
@@ -132,6 +133,15 @@ export default function RemitoDetallePage({
     }
   }
 
+  async function handleDescargarPdf() {
+    setError(null);
+    try {
+      await downloadRemitoPdf(id, `remito-${remito?.numero ?? id.slice(0, 8)}.pdf`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Error de conexión');
+    }
+  }
+
   if (loading || !remito) {
     return (
       <main className="mx-auto max-w-3xl p-6">
@@ -154,7 +164,12 @@ export default function RemitoDetallePage({
         <h1 className="text-xl font-semibold">
           Remito {remito.numero ?? remito.id.slice(0, 8)}
         </h1>
-        <span className="rounded border px-2 py-1 text-sm">{remito.estado}</span>
+        <div className="flex items-center gap-3">
+          <button onClick={handleDescargarPdf} className="text-sm underline">
+            Descargar PDF
+          </button>
+          <span className="rounded border px-2 py-1 text-sm">{remito.estado}</span>
+        </div>
       </div>
 
       <dl className="mb-6 grid grid-cols-2 gap-2 text-sm">

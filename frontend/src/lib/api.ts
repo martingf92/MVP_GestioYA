@@ -240,3 +240,25 @@ export function emitirRemito(id: string) {
 export function anularRemito(id: string) {
   return request<Remito>(`/remitos/${id}/anular`, { method: 'POST' });
 }
+
+// El endpoint exige el token en el header Authorization, así que un <a href>
+// plano no alcanza (el navegador no manda headers custom en una navegación) --
+// se pide como blob y se dispara la descarga a mano.
+export async function downloadRemitoPdf(id: string, filename: string) {
+  const token = getAccessToken();
+  const res = await fetch(`${API_URL}/remitos/${id}/pdf`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (!res.ok) {
+    throw new ApiError(res.status, 'No se pudo generar el PDF');
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}

@@ -285,3 +285,25 @@ Login → Unidades de medida (ver la existente) → Productos (ver existentes + 
 ## Siguiente paso sugerido
 
 Módulo de Cuentas (backend). El frontend queda con Entidades, Productos, Unidades de Medida y Remitos cubiertos.
+
+---
+
+# Entrega 9: PDF de Remitos
+
+## Qué incluye esto
+
+- `GET /remitos/:id/pdf` — genera el remito como PDF al vuelo (con `pdfkit`) y lo devuelve para descargar. No requirió tocar el schema, toda la info ya existía.
+- `frontend`: botón "Descargar PDF" en el detalle de un remito (`lib/api.ts#downloadRemitoPdf`) — pide el PDF con el token de auth (un `<a href>` común no puede mandar ese header), arma un blob y dispara la descarga en el navegador.
+
+## Decisión tomada
+
+- **Librería `pdfkit`** en vez de renderizar HTML con un browser headless (Puppeteer): documento simple (encabezado + tabla + total), no hace falta el peso de meter un Chromium embebido solo para esto.
+- **No se automatiza el envío por mail/WhatsApp** — se descarga el PDF y el envío queda manual desde ahí, tal como se habló. Automatizar el envío sería integración con esos servicios, otro alcance.
+
+## Probado
+
+`GET /remitos/:id/pdf` contra el servidor real devolvió un PDF válido (verificado el header `%PDF-` y el contenido visual: encabezado, entidad, tabla de productos con cantidad/precio/subtotal, total). Botón del frontend probado disparando el click real sobre el handler de React (no vía coordenadas del mouse, que en este momento no estaban llegando al panel del navegador por un problema del tooling, no del código): la request salió con el header de autenticación correcto y el backend respondió 200.
+
+## Siguiente paso sugerido
+
+Módulo de Cuentas (backend): `CuentaCorriente`, `Obligacion` (con `entidadId` opcional, ver aclaración de Martín) y `Pago` con pagos parciales (requiere agregar una tabla `AplicacionPago`, cambio de schema pendiente de implementar).

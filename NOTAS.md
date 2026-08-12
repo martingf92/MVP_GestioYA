@@ -209,3 +209,47 @@ Crear unidad "KG" → duplicada (mismo código, 409) → crear producto con esa 
 ## Siguiente paso sugerido
 
 Módulo de Remitos (depende de Entidad y Producto, ambos ya listos).
+
+---
+
+# Entrega 7: módulo de Remitos
+
+## Qué incluye esto
+
+- `src/remitos/` — CRUD con ciclo de vida (`borrador → emitido → anulado`), detalles anidados, DTOs.
+- No hubo cambios de schema — `Remito`/`DetalleRemito` ya estaban completos desde la entrega 1.
+
+## Endpoints
+
+```
+POST   /remitos                crea en estado "borrador" (con detalles anidados)
+GET    /remitos                 lista (filtros: tipo, estado, entidadId; paginado)
+GET    /remitos/:id             detalle (con líneas + producto + entidad)
+PATCH  /remitos/:id             edita cabecera y/o reemplaza detalles -- solo si sigue en "borrador"
+POST   /remitos/:id/emitir      borrador → emitido (a partir de ahí, ya no editable)
+POST   /remitos/:id/anular      borrador o emitido → anulado (estado final)
+```
+
+Sin `DELETE` físico -- "anular" cumple ese rol sin perder trazabilidad, confirmado con Martín antes de programar.
+
+## Decisiones tomadas en esta entrega (confirmadas antes de programar)
+
+- **Ciclo de vida cerrado una vez "emitido"**: ni cabecera ni detalles se pueden tocar después de emitir -- solo queda disponible `anular`. Confirmado explícitamente, no asumido.
+- **`subtotal` se calcula en el servidor** (`cantidad × precioUnitario`), nunca se toma del valor que mande el cliente aunque lo mande.
+- **`usuarioId` se completa con el usuario autenticado** (`req.user.userId`), no es un campo que decida el cliente.
+- **Sin movimientos de stock**: `GESTIOYA.md` marca "Stock" explícitamente como funcionalidad todavía sin definir (sección 14), y el schema no tiene ningún campo de stock en `Producto` (solo `stockMinimo`, que es un umbral). El Remito queda como documento que registra el movimiento, sin tocar ningún contador -- no se inventa uno.
+- **`entidadId` (cabecera) y `productoId` (cada línea de detalle) llevan el mismo chequeo cross-tenant** que ya se armó en Entidades/Productos: si vienen de otra empresa, `400 Bad Request`.
+- **Editar detalles en un remito "borrador" reemplaza el set completo** (se borran los anteriores y se crean los nuevos dentro de una transacción), en vez de diffear altas/bajas/cambios línea por línea -- más simple para el MVP, sin sub-ingeniería.
+- **No se puede emitir un remito sin detalles** (chequeo mínimo de sanity, no pedido explícitamente pero evidente: un remito vacío no tiene sentido emitirlo).
+
+## Bug encontrado y corregido durante las pruebas (no estaba en el plan original)
+
+Al probar, se creó sin problema un remito usando un producto que ya estaba dado de baja (`activo=false`) de una prueba anterior -- nada lo impedía. Se corrigió: `assertProductosExist` y `assertEntidadExists` ahora exigen `activo=true` además de pertenecer a la empresa. Reprobado después del fix: un producto o entidad dado de baja queda bloqueado para remitos nuevos (400).
+
+## Probado end-to-end contra el servidor real y Postgres
+
+Crear remito de salida con una línea → editar cabecera en "borrador" → emitir → intentar editar ya emitido (409) → intentar emitir de nuevo (409) → anular → usar un producto dado de baja (400, tras el fix) → usar un producto de otra empresa (400, aislamiento) → crear remito válido con producto activo → listado. Todos los pasos dieron el resultado esperado.
+
+## Siguiente paso sugerido
+
+Módulo de Cuentas (incluye Obligaciones/Pagos/Cheques) -- el último del MVP backend.

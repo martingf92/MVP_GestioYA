@@ -362,3 +362,52 @@ Obligación sin entidad (no toca cuenta corriente) → obligación con entidad (
 ## Siguiente paso sugerido
 
 Módulo de Tareas (backend) — el último módulo del MVP.
+
+---
+
+# Entrega 11: módulo de Tareas (con recordatorios "app")
+
+## Qué incluye esto
+
+- `src/tareas/` — CRUD completo de `Tarea` (con `Notificacion` anidada al crear), más `GET /tareas/recordatorios`.
+
+## Endpoints
+
+```
+POST   /tareas                 crear (titulo, descripcion?, entidadId?, fechaVencimiento?, prioridad?, usuarioResponsableId?, notificaciones?: [{canal, fechaProgramada}])
+GET    /tareas                  listar (filtros: estado, entidadId, usuarioResponsableId)
+GET    /tareas/recordatorios    notificaciones canal "app" ya vencidas y pendientes -- ver decisión abajo
+GET    /tareas/:id
+PATCH  /tareas/:id              editar (incluye cambiar estado: abierta → en_proceso → cumplida)
+DELETE /tareas/:id              borrado físico real
+```
+
+## Decisión: recordatorios sin Redis/n8n, confirmada con Martín
+
+Martín marcó que "no sirve de nada las tareas sin que tengan los recordatorios". `Notificacion.canal` puede ser `app | email | sms | whatsapp`; para `email`/`sms`/`whatsapp` hace falta un servicio externo enviando de verdad (Redis/n8n, fuera del stack por ahora según `CLAUDE.md`) -- esas notificaciones se guardan igual, quedan en `pendiente`, pero **no se envían** (decisión pendiente aparte, depende de qué proveedor se contrate).
+
+Para `canal: "app"` no hace falta ningún motor de jobs: `GET /tareas/recordatorios` calcula al vuelo qué notificaciones ya llegaron a su `fechaProgramada` y siguen `pendiente` -- mismo criterio que ya se usa para `vencida` en Tarea/Obligacion (calculado al leer, no disparado por un proceso en background). Es lo que le da uso real al sistema de recordatorios hoy: se consulta al entrar a la app.
+
+## Otras decisiones
+
+- **`DELETE` es borrado físico real**, a diferencia de Entidad/Producto/Remito/Obligacion: una Tarea no es un registro financiero ni de negocio con valor de auditoría, no amerita baja lógica. `Notificacion` tiene `onDelete: Cascade`, se limpia sola.
+- **`vencida` calculada, no guardada** (mismo criterio que Obligacion).
+- **`entidadId` y `usuarioResponsableId` con el mismo chequeo cross-tenant** ya establecido en el resto de los módulos. `creadaPorUsuarioId` se completa solo con el usuario autenticado, no es un campo que mande el cliente.
+- **`GET /tareas/recordatorios` se registra antes que `GET /tareas/:id`** en el controller -- si no, `:id` matchea "recordatorios" como si fuera un id.
+
+## Probado end-to-end contra el servidor real y Postgres
+
+Crear tarea con notificación `app` programada en el pasado → aparece en `GET /tareas/recordatorios` → marcar tarea como "cumplida" (`vencida` pasa a `false`) → filtrar listado por estado → borrado físico (404 después) → aislamiento: la empresa B no ve nada en su listado ni en sus recordatorios → sin token, 401. Todos los pasos dieron el resultado esperado.
+
+## Con esto queda cerrado el backend del MVP
+
+Los 5 módulos (Entidades, Productos, Remitos, Cuentas, Tareas) más Auth están construidos y probados de punta a punta, incluyendo aislamiento entre empresas en cada uno. Facturación sigue afuera a propósito (no por olvido, ver `CLAUDE.md`).
+
+## Pendiente
+
+- Envío real de notificaciones por email/SMS/WhatsApp (necesita decidir proveedor + Redis/n8n).
+- El frontend no tiene pantallas de Cuentas ni de Tareas todavía.
+
+## Siguiente paso sugerido
+
+Frontend: sumar pantallas de Cuentas y Tareas para poder probar todo el MVP desde el navegador. El backend del MVP ya está completo.

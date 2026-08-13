@@ -40,22 +40,23 @@ sobre-ingeniería. Objetivo: tener algo demostrable hacia fin de 2026.
   para simplificar el login del MVP — revisar cuando se construya Auth.
 
 ## Estado actual
-Repo publicado en `https://github.com/martingf92/MVP_GestioYA`. Backend NestJS
-armado, con PostgreSQL 17 corriendo local (sin Docker, ver NOTAS.md entrega 3).
-Auth (JWT + refresh token), Entidades (CRUD + cliente/proveedor), Unidades de
-Medida, Productos, Remitos (con ciclo de vida borrador/emitido/anulado, y
-descarga en PDF) y Cuentas (CuentaCorriente, Obligacion con entidadId
-opcional, Pago con pagos parciales, Cheque) construidos y probados de punta a
-punta contra la base real, incluyendo aislamiento entre empresas. Frontend en
-`frontend/` (Next.js, sin diseño) con login y pantallas de Entidades,
-Productos, Unidades de Medida y Remitos — Cuentas todavía sin pantalla — ver
-`NOTAS.md` (entregas 1 a 10) para el detalle completo.
+Repo publicado en `https://github.com/martingf92/MVP_GestioYA`. **Backend del
+MVP completo**: Auth (JWT + refresh token), Entidades (CRUD + cliente/
+proveedor), Unidades de Medida, Productos, Remitos (con ciclo de vida
+borrador/emitido/anulado, y descarga en PDF), Cuentas (CuentaCorriente,
+Obligacion con entidadId opcional, Pago con pagos parciales, Cheque) y Tareas
+(con recordatorios "app" sin necesitar Redis/n8n) — todos construidos y
+probados de punta a punta contra Postgres real (PostgreSQL 17 local, sin
+Docker, ver NOTAS.md entrega 3), incluyendo aislamiento entre empresas.
+Frontend en `frontend/` (Next.js, sin diseño) con login y pantallas de
+Entidades, Productos, Unidades de Medida y Remitos — Cuentas y Tareas
+todavía sin pantalla — ver `NOTAS.md` (entregas 1 a 11) para el detalle
+completo.
 
 ## Próximo paso
-Módulo de Tareas (backend) — el último módulo del MVP. El frontend sigue en
-segundo plano: se le suma pantalla a cada módulo nuevo a medida que el
-backend lo soporta, sin invertir en diseño todavía (Cuentas quedó pendiente
-de pantalla).
+Frontend: sumar pantallas de Cuentas y Tareas para poder probar todo el MVP
+desde el navegador. Pendiente aparte, no bloqueante: envío real de
+notificaciones por email/SMS/WhatsApp (necesita decidir proveedor).
 
 ## Documentos de referencia
 - `GESTIOYA.md` — contexto de producto completo, reglas del equipo, qué NO está

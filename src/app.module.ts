@@ -10,6 +10,7 @@ import { EntidadesModule } from './entidades/entidades.module';
 import { UnidadesMedidaModule } from './unidades-medida/unidades-medida.module';
 import { ProductosModule } from './productos/productos.module';
 import { RemitosModule } from './remitos/remitos.module';
+import { CuentasModule } from './cuentas/cuentas.module';
 import { AuthMiddleware } from './common/auth/auth.middleware';
 import { TenantMiddleware } from './common/tenant/tenant.middleware';
 
@@ -21,6 +22,7 @@ import { TenantMiddleware } from './common/tenant/tenant.middleware';
     UnidadesMedidaModule,
     ProductosModule,
     RemitosModule,
+    CuentasModule,
   ],
   providers: [AuthMiddleware, TenantMiddleware],
 })

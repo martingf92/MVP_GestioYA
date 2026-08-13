@@ -43,23 +43,19 @@ sobre-ingeniería. Objetivo: tener algo demostrable hacia fin de 2026.
 Repo publicado en `https://github.com/martingf92/MVP_GestioYA`. Backend NestJS
 armado, con PostgreSQL 17 corriendo local (sin Docker, ver NOTAS.md entrega 3).
 Auth (JWT + refresh token), Entidades (CRUD + cliente/proveedor), Unidades de
-Medida, Productos y Remitos (con ciclo de vida borrador/emitido/anulado, y
-descarga en PDF) construidos y probados de punta a punta contra la base real,
-incluyendo aislamiento entre empresas. Frontend en `frontend/` (Next.js, sin
-diseño) con login y pantallas de Entidades, Productos, Unidades de Medida y
-Remitos, probado de punta a punta en el navegador — ver `NOTAS.md` (entregas
-1 a 9) para el detalle completo.
+Medida, Productos, Remitos (con ciclo de vida borrador/emitido/anulado, y
+descarga en PDF) y Cuentas (CuentaCorriente, Obligacion con entidadId
+opcional, Pago con pagos parciales, Cheque) construidos y probados de punta a
+punta contra la base real, incluyendo aislamiento entre empresas. Frontend en
+`frontend/` (Next.js, sin diseño) con login y pantallas de Entidades,
+Productos, Unidades de Medida y Remitos — Cuentas todavía sin pantalla — ver
+`NOTAS.md` (entregas 1 a 10) para el detalle completo.
 
 ## Próximo paso
-Módulo de Cuentas (backend) — el último módulo backend del MVP, después queda
-Tareas. Ya está definido con Martín: `Obligacion.entidadId` pasa a ser
-**opcional** (una obligación puede ser deuda comercial con una `Entidad`, o un
-gasto general de la empresa como alquiler/servicios, sin entidad asociada), y
-se suma soporte de **pagos parciales genérico** (aplica igual a cualquier
-`Obligacion`) vía una tabla nueva `AplicacionPago` — ver NOTAS.md entrega 9
-para el detalle de la decisión. Todavía no implementado. El frontend sigue en
+Módulo de Tareas (backend) — el último módulo del MVP. El frontend sigue en
 segundo plano: se le suma pantalla a cada módulo nuevo a medida que el
-backend lo soporta, sin invertir en diseño todavía.
+backend lo soporta, sin invertir en diseño todavía (Cuentas quedó pendiente
+de pantalla).
 
 ## Documentos de referencia
 - `GESTIOYA.md` — contexto de producto completo, reglas del equipo, qué NO está

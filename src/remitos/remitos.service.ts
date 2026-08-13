@@ -33,7 +33,11 @@ export class RemitosService {
       data: {
         numero: dto.numero,
         tipo: dto.tipo,
-        fecha: dto.fecha,
+        // new Date(...), no el string crudo: class-validator@IsDateString
+        // acepta fechas sin horario, pero Prisma exige un datetime ISO
+        // completo y tira 500 si le llega solo la fecha (bug real,
+        // encontrado probando el mismo caso en Obligacion.fechaVencimiento).
+        fecha: dto.fecha ? new Date(dto.fecha) : undefined,
         entidadId: dto.entidadId,
         estado: 'borrador',
         usuarioId,
@@ -99,7 +103,7 @@ export class RemitosService {
         data: {
           numero: dto.numero,
           tipo: dto.tipo,
-          fecha: dto.fecha,
+          fecha: dto.fecha ? new Date(dto.fecha) : undefined,
           entidadId: dto.entidadId,
         },
       });

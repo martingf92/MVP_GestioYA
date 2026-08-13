@@ -252,22 +252,30 @@ model MovimientoCuenta {
   usuarioId         String?
 }
 
+// entidadId opcional a propósito (decisión con Martín, ver NOTAS.md entrega
+// 9/10): una Obligacion puede ser deuda comercial con una Entidad puntual
+// (proveedor/acreedor), o un compromiso general de la empresa sin entidad
+// asociada (alquiler, servicios). Con entidadId, afecta la CuentaCorriente
+// de esa entidad; sin entidadId, es solo un ítem a pagar, sin cuenta
+// corriente involucrada. montoPagado/estado NO se guardan como campo fijo:
+// se calculan sumando AplicacionPago, para no desincronizarse del historial
+// real de pagos.
 model Obligacion {
   id               String    @id @default(uuid())
   empresaId        String
   empresa          Empresa   @relation(fields: [empresaId], references: [id])
-  entidadId        String
-  entidad          Entidad   @relation(fields: [entidadId], references: [id])
+  entidadId        String?
+  entidad          Entidad?  @relation(fields: [entidadId], references: [id])
   tipo             String?
   descripcion      String?
   fechaEmision     DateTime  @default(now())
   fechaVencimiento DateTime?
   monto            Decimal   @db.Decimal(14, 2)
   moneda           String    @default("ARS")
-  estado           String    @default("pendiente") // pendiente | parcial | cancelada | vencida
-  pagoId           String?
-  pago             Pago?     @relation(fields: [pagoId], references: [id])
+  estado           String    @default("pendiente") // pendiente | parcial | cancelada | anulada
   prioridad        String?
+
+  aplicaciones AplicacionPago[]
 
   @@index([empresaId])
   @@index([empresaId, estado, fechaVencimiento])
@@ -286,10 +294,30 @@ model Pago {
   estado            String   @default("confirmado") // pendiente | confirmado | rechazado
   referenciaExterna String?
 
-  obligaciones Obligacion[]
+  aplicaciones AplicacionPago[]
   cheques      Cheque[]
 
   @@index([empresaId])
+}
+
+// Reemplaza la relación directa Obligacion.pagoId original: esa solo
+// permitía un pago completo por obligación. Esta tabla intermedia permite
+// que varios pagos parciales vayan cancelando la misma obligación a lo
+// largo del tiempo (pedido explícito: "en Argentina es habitual ir pagando
+// al proveedor por semana/día hasta cancelar"), y que un mismo pago reparta
+// entre varias obligaciones si hace falta. No lleva empresaId ni entra en
+// el allowlist de tenant.extension.ts (mismo motivo que Cliente/Proveedor/
+// DetalleRemito): el aislamiento viene transitivamente de pagoId/obligacionId.
+model AplicacionPago {
+  id           String     @id @default(uuid())
+  pagoId       String
+  pago         Pago       @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+  obligacionId String
+  obligacion   Obligacion @relation(fields: [obligacionId], references: [id])
+  monto        Decimal    @db.Decimal(14, 2)
+
+  @@index([pagoId])
+  @@index([obligacionId])
 }
 
 model Cheque {

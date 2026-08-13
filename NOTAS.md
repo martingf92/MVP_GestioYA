@@ -307,3 +307,58 @@ Módulo de Cuentas (backend). El frontend queda con Entidades, Productos, Unidad
 ## Siguiente paso sugerido
 
 Módulo de Cuentas (backend): `CuentaCorriente`, `Obligacion` (con `entidadId` opcional, ver aclaración de Martín) y `Pago` con pagos parciales (requiere agregar una tabla `AplicacionPago`, cambio de schema pendiente de implementar).
+
+---
+
+# Entrega 10: módulo de Cuentas (CuentaCorriente, Obligacion, Pago, Cheque)
+
+## Qué incluye esto
+
+- Cambio de schema: `Obligacion.entidadId` pasa a ser opcional; se agrega el modelo `AplicacionPago` (reemplaza la relación directa `Obligacion.pagoId` → `Pago`, que solo permitía un pago completo por obligación).
+- `src/cuentas/` — `CuentasCorrientesService` (helper compartido: crea la cuenta al vuelo, registra movimientos), `ObligacionesService`/`Controller`, `PagosService`/`Controller` (con `Cheque` anidado), `CuentaCorrienteController`.
+
+## Aclaración de concepto que cambió el diseño a mitad de camino
+
+La primera versión de este módulo asumía que `Obligacion` siempre colgaba de una `Entidad` (proveedor/acreedor puntual, deuda comercial). Martín aclaró que también necesita trackear compromisos generales de la empresa sin entidad asociada (alquiler, servicios) con el mismo mecanismo de pagos parciales/vencimientos. Como el schema no distinguía dos conceptos separados, se resolvió haciendo `entidadId` opcional en la misma tabla, en vez de duplicar toda la lógica de pagos en un modelo nuevo — con entidad, afecta su `CuentaCorriente`; sin entidad, es solo un ítem a pagar.
+
+## Endpoints
+
+```
+GET   /entidades/:id/cuenta-corriente      saldo + historial de movimientos (se crea sola al primer movimiento)
+
+POST  /obligaciones                         crear (entidadId?, monto, tipo?, descripcion?, fechaVencimiento?)
+GET   /obligaciones                          listar (filtros: entidadId, estado)
+GET   /obligaciones/:id                      incluye montoPagado, saldo y vencida (todos calculados, no guardados)
+POST  /obligaciones/:id/anular               solo si no tiene ningún pago aplicado
+
+POST  /pagos                                 crear (entidadId?, monto, medio?, aplicaciones?: [{obligacionId, monto}], cheques?: [...])
+GET   /pagos
+GET   /pagos/:id
+POST  /pagos/:id/anular                      revierte movimientos; las obligaciones afectadas vuelven a pendiente/parcial
+```
+
+## Decisiones tomadas (confirmadas con Martín antes de tocar el schema)
+
+- **Saldo de `CuentaCorriente`**: positivo = la entidad le debe a la empresa; negativo = la empresa le debe a la entidad. Misma tabla para clientes y proveedores/acreedores.
+- **Pagos parciales genéricos**: aplica igual a cualquier `Obligacion`, sin distinguir "deuda comercial" de "gasto operativo" — el schema no tiene (ni se agregó) un campo de categoría para diferenciarlas.
+- **`montoPagado`/`saldo` no se guardan como campo fijo**: se calculan sumando `AplicacionPago` (filtrando pagos con estado `rechazado`, que no cuentan). Mismo criterio que ya se usó para no confiar en contadores que se puedan desincronizar del historial real.
+- **`estado` de `Obligacion` sí se guarda** (a diferencia de montoPagado/saldo) y se recalcula transaccionalmente en cada aplicación o reversión de pago — necesario para poder filtrar `GET /obligaciones?estado=...` sin traer todo a memoria.
+- **`vencida` no se guarda**: se calcula al mostrar (`fechaVencimiento` pasada + no cancelada/anulada). Guardarla como estado fijo necesitaría un proceso en segundo plano que no existe todavía.
+- **Anular un `Pago` reutiliza el estado `rechazado`** (ya estaba en el enum original) en vez de agregar un estado nuevo. Anular una `Obligacion` sí suma un estado nuevo, `anulada` (no estaba en el comentario original del schema, que solo es un comentario, no un enum real de Postgres).
+- **`CuentaCorriente` se crea sola** la primera vez que una entidad tiene una obligación o un pago — no al crear la `Entidad`.
+
+## Bug encontrado y corregido durante las pruebas (afecta también a Remitos)
+
+`class-validator`'s `@IsDateString()` acepta fechas sin horario (`"2020-01-01"`), pero Prisma exige un datetime ISO completo para campos `DateTime` y tira un 500 crudo si le llega solo la fecha. Se corrigió convirtiendo con `new Date(...)` antes de pasarle el valor a Prisma, en `Obligacion.fechaVencimiento`, `Cheque.fechaEmision`/`fechaCobro`, y de paso en `Remito.fecha` (mismo bug, latente ahí porque nunca se había probado mandando `fecha` explícita). Reprobado en los tres lugares tras el fix.
+
+## Probado end-to-end contra el servidor real y Postgres
+
+Obligación sin entidad (no toca cuenta corriente) → obligación con entidad (crea la cuenta, movimiento "debe") → pago parcial con cheque anidado (obligación pasa a "parcial", saldo baja) → intento de sobre-pago (400) → pago final (obligación "cancelada", saldo en 0) → anular el pago final (reversión completa: obligación vuelve a "parcial", saldo vuelve a como estaba) → anular el mismo pago de nuevo (409) → anular obligación con pagos aplicados (409) → crear y anular obligación sin pagos (funciona, no afecta otras cuentas) → **aislamiento**: otra empresa no puede pagar una obligación ajena (400), no puede ver la cuenta corriente ajena (404) ni la obligación ajena (404), su propio listado da 0 → flag `vencida` calculado bien → filtro por estado → sin token (401). Todos los pasos dieron el resultado esperado.
+
+## Pendiente
+
+- El frontend no tiene pantallas de Cuentas todavía (Obligaciones, Pagos, cuenta corriente).
+
+## Siguiente paso sugerido
+
+Módulo de Tareas (backend) — el último módulo del MVP.

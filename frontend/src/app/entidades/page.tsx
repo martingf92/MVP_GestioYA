@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Entidad,
   ApiError,
@@ -133,8 +134,14 @@ export default function EntidadesPage() {
                 <td className="py-2">{e.documentoNro ?? '—'}</td>
                 <td className="py-2">{e.activo ? 'sí' : 'no'}</td>
                 <td className="py-2 text-right">
+                  <Link href={`/entidades/${e.id}/cuenta-corriente`} className="underline">
+                    cuenta corriente
+                  </Link>
                   {e.activo && (
-                    <button onClick={() => handleDelete(e.id)} className="underline">
+                    <button
+                      onClick={() => handleDelete(e.id)}
+                      className="ml-3 underline"
+                    >
                       dar de baja
                     </button>
                   )}

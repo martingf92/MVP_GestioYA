@@ -411,3 +411,31 @@ Los 5 módulos (Entidades, Productos, Remitos, Cuentas, Tareas) más Auth están
 ## Siguiente paso sugerido
 
 Frontend: sumar pantallas de Cuentas y Tareas para poder probar todo el MVP desde el navegador. El backend del MVP ya está completo.
+
+---
+
+# Entrega 12: frontend de Cuentas (Obligaciones, Pagos, cuenta corriente) y Tareas
+
+## Qué incluye esto
+
+- `frontend/src/app/obligaciones/page.tsx` — listado (con `montoPagado`, estado, `vencida`) + alta (entidad opcional) + anular (solo visible si `montoPagado === 0`, mismo criterio que el backend).
+- `frontend/src/app/pagos/page.tsx` — listado + alta con líneas dinámicas de "aplicar a obligación" (selector con el saldo pendiente de cada una) + cheques + anular.
+- `frontend/src/app/entidades/[id]/cuenta-corriente/page.tsx` — saldo actual (con leyenda de a quién le debe quién) + historial completo de movimientos. Accesible desde un link nuevo en cada fila de la tabla de Entidades.
+- `frontend/src/app/tareas/page.tsx` — banner de "recordatorios pendientes" (consume `GET /tareas/recordatorios`) arriba de todo, listado con `vencida`, alta (con recordatorio "app" automático si se carga vencimiento), cambio de estado inline, eliminar.
+- Con esto, **todos los módulos del MVP tienen pantalla** en el frontend.
+
+## Bug encontrado y corregido durante las pruebas
+
+El selector de "aplicar a obligación" en Pagos mostraba obligaciones con `estado: "anulada"` como opción válida (el filtro del frontend solo chequeaba `saldo > 0`, y una obligación anulada sin pagos tiene `saldo === monto`, o sea > 0). El backend ya la rechazaba correctamente (400), pero el usuario se hubiera encontrado con un error confuso en vez de no ver la opción. Se agregó `&& o.estado !== 'anulada'` al filtro.
+
+## Probado en el navegador real (Browser pane) contra el backend real
+
+Obligaciones: alta sin entidad y con entidad, botón "anular" respeta la regla de negocio. Pagos: alta aplicando a una obligación válida (el saldo bajó correctamente en la tabla), pago anulado no muestra botón de anular de nuevo. Cuenta corriente: el historial mostrado coincide exactamente con las pruebas hechas por API en la entrega 10 (mismo saldo, mismos movimientos, en el mismo orden). Tareas: alta con recordatorio automático → aparece en el banner → cambiar estado a "cumplida" saca el flag `vencida` → eliminar borra la tarea y su recordatorio (cascada). Sin errores de consola relevantes (solo WebSocket de HMR de una sesión de dev anterior, no del código).
+
+## Con esto el frontend queda alineado 1:1 con el backend
+
+Los 5 módulos del MVP (Entidades, Productos, Remitos, Cuentas, Tareas) tienen CRUD funcional en el navegador, sin diseño todavía (a propósito, ver `CLAUDE.md`).
+
+## Siguiente paso sugerido
+
+Diseño visual del frontend (cuando Martín defina la dirección), o seguir iterando funcionalidad si aparecen huecos al usar el MVP en la práctica.

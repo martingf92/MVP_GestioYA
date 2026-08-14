@@ -49,14 +49,16 @@ Obligacion con entidadId opcional, Pago con pagos parciales, Cheque) y Tareas
 probados de punta a punta contra Postgres real (PostgreSQL 17 local, sin
 Docker, ver NOTAS.md entrega 3), incluyendo aislamiento entre empresas.
 Frontend en `frontend/` (Next.js, sin diseño) con login y pantallas de
-Entidades, Productos, Unidades de Medida y Remitos — Cuentas y Tareas
-todavía sin pantalla — ver `NOTAS.md` (entregas 1 a 11) para el detalle
-completo.
+Entidades, Productos, Unidades de Medida, Remitos, Obligaciones, Pagos (con
+cuenta corriente por entidad) y Tareas (con recordatorios) — **el frontend
+ya cubre los 5 módulos del MVP**, todo probado en el navegador contra el
+backend real — ver `NOTAS.md` (entregas 1 a 12) para el detalle completo.
 
 ## Próximo paso
-Frontend: sumar pantallas de Cuentas y Tareas para poder probar todo el MVP
-desde el navegador. Pendiente aparte, no bloqueante: envío real de
-notificaciones por email/SMS/WhatsApp (necesita decidir proveedor).
+Diseño visual del frontend (cuando Martín defina la dirección), o seguir
+sumando funcionalidad si aparecen huecos al usar el MVP en la práctica.
+Pendiente aparte, no bloqueante: envío real de notificaciones por
+email/SMS/WhatsApp (necesita decidir proveedor).
 
 ## Documentos de referencia
 - `GESTIOYA.md` — contexto de producto completo, reglas del equipo, qué NO está

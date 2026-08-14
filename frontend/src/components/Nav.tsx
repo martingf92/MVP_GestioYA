@@ -10,6 +10,9 @@ const LINKS = [
   { href: '/productos', label: 'Productos' },
   { href: '/unidades-medida', label: 'Unidades de medida' },
   { href: '/remitos', label: 'Remitos' },
+  { href: '/obligaciones', label: 'Obligaciones' },
+  { href: '/pagos', label: 'Pagos' },
+  { href: '/tareas', label: 'Tareas' },
 ];
 
 export default function Nav() {

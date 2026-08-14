@@ -60,6 +60,82 @@ export interface Remito {
   detalles: DetalleRemito[];
 }
 
+export interface MovimientoCuenta {
+  id: string;
+  fecha: string;
+  tipo: string;
+  concepto: string | null;
+  monto: string;
+  saldoResultante: string;
+}
+
+export interface CuentaCorriente {
+  entidadId: string;
+  saldoActual: number | string;
+  moneda: string;
+  movimientos: MovimientoCuenta[];
+}
+
+export interface AplicacionPago {
+  id: string;
+  obligacionId: string;
+  monto: string;
+  obligacion?: Obligacion;
+}
+
+export interface Obligacion {
+  id: string;
+  entidadId: string | null;
+  entidad: Entidad | null;
+  tipo: string | null;
+  descripcion: string | null;
+  fechaVencimiento: string | null;
+  monto: string;
+  estado: 'pendiente' | 'parcial' | 'cancelada' | 'anulada';
+  montoPagado: number;
+  saldo: number;
+  vencida: boolean;
+}
+
+export interface Cheque {
+  id: string;
+  numero: string | null;
+  banco: string | null;
+  monto: string | null;
+}
+
+export interface Pago {
+  id: string;
+  entidadId: string | null;
+  entidad: Entidad | null;
+  fecha: string;
+  medio: string | null;
+  monto: string;
+  estado: 'pendiente' | 'confirmado' | 'rechazado';
+  aplicaciones: AplicacionPago[];
+  cheques: Cheque[];
+}
+
+export interface Notificacion {
+  id: string;
+  canal: string;
+  fechaProgramada: string;
+  estado: string;
+}
+
+export interface Tarea {
+  id: string;
+  titulo: string;
+  descripcion: string | null;
+  entidadId: string | null;
+  entidad: Entidad | null;
+  fechaVencimiento: string | null;
+  estado: 'abierta' | 'en_proceso' | 'cumplida';
+  prioridad: string | null;
+  vencida: boolean;
+  notificaciones: Notificacion[];
+}
+
 // Guardado en localStorage a propósito: esto es un frontend de prueba
 // interno, no la versión final. Antes de exponer esto a clientes reales
 // conviene revisar el manejo de tokens en el cliente (XSS, httpOnly cookies
@@ -261,4 +337,85 @@ export async function downloadRemitoPdf(id: string, filename: string) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+export function getCuentaCorriente(entidadId: string) {
+  return request<CuentaCorriente>(`/entidades/${entidadId}/cuenta-corriente`);
+}
+
+export function listObligaciones() {
+  return request<{ data: Obligacion[]; total: number }>('/obligaciones');
+}
+
+export function createObligacion(input: {
+  entidadId?: string;
+  monto: number;
+  tipo?: string;
+  descripcion?: string;
+  fechaVencimiento?: string;
+}) {
+  return request<Obligacion>('/obligaciones', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function anularObligacion(id: string) {
+  return request<Obligacion>(`/obligaciones/${id}/anular`, { method: 'POST' });
+}
+
+export function listPagos() {
+  return request<{ data: Pago[]; total: number }>('/pagos');
+}
+
+export function createPago(input: {
+  entidadId?: string;
+  monto: number;
+  medio?: string;
+  aplicaciones?: { obligacionId: string; monto: number }[];
+  cheques?: { numero?: string; banco?: string; monto?: number }[];
+}) {
+  return request<Pago>('/pagos', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function anularPago(id: string) {
+  return request<Pago>(`/pagos/${id}/anular`, { method: 'POST' });
+}
+
+export function listTareas() {
+  return request<{ data: Tarea[]; total: number }>('/tareas');
+}
+
+export function getRecordatorios() {
+  return request<
+    { notificacionId: string; tareaId: string; titulo: string; fechaProgramada: string }[]
+  >('/tareas/recordatorios');
+}
+
+export function createTarea(input: {
+  titulo: string;
+  descripcion?: string;
+  entidadId?: string;
+  fechaVencimiento?: string;
+  prioridad?: string;
+  notificaciones?: { canal: 'app' | 'email' | 'sms' | 'whatsapp'; fechaProgramada: string }[];
+}) {
+  return request<Tarea>('/tareas', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateTareaEstado(id: string, estado: 'abierta' | 'en_proceso' | 'cumplida') {
+  return request<Tarea>(`/tareas/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ estado }),
+  });
+}
+
+export function deleteTarea(id: string) {
+  return request<void>(`/tareas/${id}`, { method: 'DELETE' });
 }

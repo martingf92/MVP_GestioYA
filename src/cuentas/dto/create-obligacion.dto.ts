@@ -1,4 +1,4 @@
-import { IsDateString, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsDateString, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateObligacionDto {
   @IsOptional()
@@ -20,4 +20,11 @@ export class CreateObligacionDto {
   @IsOptional()
   @IsDateString()
   fechaVencimiento?: string;
+
+  // a_cobrar (default): la entidad nos debe (venta, caso original).
+  // a_pagar: nosotros le debemos a la entidad (compra a un proveedor,
+  // deuda con un acreedor). Ver Obligacion.direccion en schema.prisma.
+  @IsOptional()
+  @IsIn(['a_cobrar', 'a_pagar'])
+  direccion?: 'a_cobrar' | 'a_pagar';
 }

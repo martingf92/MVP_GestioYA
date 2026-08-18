@@ -10,8 +10,9 @@ import { UpdateEntidadDto } from './dto/update-entidad.dto';
 import { ListEntidadesQueryDto } from './dto/list-entidades-query.dto';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
+import { CreateAcreedorDto } from './dto/create-acreedor.dto';
 
-const INCLUDE_SUBTIPOS = { cliente: true, proveedor: true } as const;
+const INCLUDE_SUBTIPOS = { cliente: true, proveedor: true, acreedor: true } as const;
 
 function isUniqueViolation(error: unknown): boolean {
   return (
@@ -54,6 +55,7 @@ export class EntidadesService {
           direccion: dto.direccion,
           cliente: dto.cliente ? { create: dto.cliente } : undefined,
           proveedor: dto.proveedor ? { create: dto.proveedor } : undefined,
+          acreedor: dto.acreedor ? { create: dto.acreedor } : undefined,
         } as unknown as Prisma.EntidadCreateInput,
         include: INCLUDE_SUBTIPOS,
       });
@@ -75,6 +77,7 @@ export class EntidadesService {
       activo: query.activo,
       cliente: query.tipo === 'cliente' ? { isNot: null } : undefined,
       proveedor: query.tipo === 'proveedor' ? { isNot: null } : undefined,
+      acreedor: query.tipo === 'acreedor' ? { isNot: null } : undefined,
     };
 
     const [data, total] = await Promise.all([
@@ -182,6 +185,29 @@ export class EntidadesService {
     } catch (error) {
       if (isNotFound(error)) {
         throw new NotFoundException('Esta entidad no tiene datos de proveedor');
+      }
+      throw error;
+    }
+  }
+
+  async upsertAcreedor(entidadId: string, dto: CreateAcreedorDto) {
+    await this.assertEntidadExists(entidadId);
+
+    return this.prisma.db.acreedor.upsert({
+      where: { entidadId },
+      create: { entidadId, ...dto },
+      update: dto,
+    });
+  }
+
+  async removeAcreedor(entidadId: string) {
+    await this.assertEntidadExists(entidadId);
+
+    try {
+      await this.prisma.db.acreedor.delete({ where: { entidadId } });
+    } catch (error) {
+      if (isNotFound(error)) {
+        throw new NotFoundException('Esta entidad no tiene datos de acreedor');
       }
       throw error;
     }

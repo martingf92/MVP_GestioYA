@@ -11,6 +11,20 @@ export class ListObligacionesQueryDto {
   estado?: string;
 
   @IsOptional()
+  @IsIn(['a_cobrar', 'a_pagar'])
+  direccion?: string;
+
+  // Filtra por el sub-perfil de la entidad asociada -- para la vista
+  // comparativa Proveedor vs Acreedor que pidió Martín.
+  @IsOptional()
+  @IsIn(['proveedor', 'acreedor'])
+  tipoEntidad?: 'proveedor' | 'acreedor';
+
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  orderDir?: 'asc' | 'desc' = 'desc';
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)

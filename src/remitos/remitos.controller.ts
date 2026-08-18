@@ -51,12 +51,12 @@ export class RemitosController {
   }
 
   @Post(':id/emitir')
-  emitir(@Param('id') id: string) {
-    return this.remitosService.emitir(id);
+  emitir(@Param('id') id: string, @Req() req: Request) {
+    return this.remitosService.emitir(id, req.user!.userId);
   }
 
   @Post(':id/anular')
-  anular(@Param('id') id: string) {
-    return this.remitosService.anular(id);
+  anular(@Param('id') id: string, @Req() req: Request) {
+    return this.remitosService.anular(id, req.user!.userId);
   }
 }

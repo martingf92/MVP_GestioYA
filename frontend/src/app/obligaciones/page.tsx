@@ -27,6 +27,7 @@ export default function ObligacionesPage() {
   const [monto, setMonto] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [fechaVencimiento, setFechaVencimiento] = useState('');
+  const [direccion, setDireccion] = useState<'a_cobrar' | 'a_pagar'>('a_cobrar');
 
   async function refresh() {
     setLoading(true);
@@ -69,11 +70,13 @@ export default function ObligacionesPage() {
         monto: Number(monto),
         descripcion: descripcion || undefined,
         fechaVencimiento: fechaVencimiento || undefined,
+        direccion,
       });
       setEntidadId('');
       setMonto('');
       setDescripcion('');
       setFechaVencimiento('');
+      setDireccion('a_cobrar');
       await refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Error de conexión');
@@ -111,6 +114,17 @@ export default function ObligacionesPage() {
                 {ent.nombre}
               </option>
             ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Dirección
+          <select
+            value={direccion}
+            onChange={(e) => setDireccion(e.target.value as 'a_cobrar' | 'a_pagar')}
+            className="rounded border px-2 py-1"
+          >
+            <option value="a_cobrar">Nos deben (a cobrar)</option>
+            <option value="a_pagar">Les debemos (a pagar)</option>
           </select>
         </label>
         <label className="flex flex-col gap-1 text-sm">
@@ -163,6 +177,7 @@ export default function ObligacionesPage() {
             <tr className="border-b text-left">
               <th className="py-2">Entidad</th>
               <th className="py-2">Descripción</th>
+              <th className="py-2">Dirección</th>
               <th className="py-2">Monto</th>
               <th className="py-2">Pagado</th>
               <th className="py-2">Estado</th>
@@ -174,6 +189,9 @@ export default function ObligacionesPage() {
               <tr key={o.id} className="border-b">
                 <td className="py-2">{o.entidad?.nombre ?? '— (gasto general)'}</td>
                 <td className="py-2">{o.descripcion ?? o.tipo ?? '—'}</td>
+                <td className="py-2 text-xs">
+                  {o.direccion === 'a_pagar' ? 'les debemos' : 'nos deben'}
+                </td>
                 <td className="py-2">{o.monto}</td>
                 <td className="py-2">{o.montoPagado}</td>
                 <td className="py-2">

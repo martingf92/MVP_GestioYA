@@ -7,6 +7,7 @@ import {
 import { Prisma } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 import { PrismaService } from '../prisma/prisma.service';
+import { ObligacionesService } from '../cuentas/obligaciones.service';
 import { CreateRemitoDto } from './dto/create-remito.dto';
 import { UpdateRemitoDto } from './dto/update-remito.dto';
 import { ListRemitosQueryDto } from './dto/list-remitos-query.dto';
@@ -15,11 +16,20 @@ import { CreateDetalleRemitoDto } from './dto/create-detalle-remito.dto';
 const INCLUDE_DETALLE = {
   detalles: { include: { producto: { include: { unidadMedida: true } } } },
   entidad: true,
+  // Para poder mostrar/chequear la obligación generada al emitir (ver
+  // emitir()/anular() más abajo). Mismo filtro de aplicaciones que usa
+  // ObligacionesService: un pago anulado no cuenta como pagado.
+  obligacionGenerada: {
+    include: { aplicaciones: { where: { pago: { estado: { not: 'rechazado' } } } } },
+  },
 } as const;
 
 @Injectable()
 export class RemitosService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly obligacionesService: ObligacionesService,
+  ) {}
 
   async create(dto: CreateRemitoDto, usuarioId: string) {
     if (dto.entidadId) {
@@ -119,7 +129,20 @@ export class RemitosService {
     return this.findOne(id);
   }
 
-  async emitir(id: string) {
+  /**
+   * Al emitir, si el remito tiene entidad, genera automáticamente la
+   * Obligación que asienta el movimiento en la cuenta corriente de esa
+   * entidad -- pedido explícito de Martín: un remito emitido tiene que
+   * quedar reflejado en la cuenta corriente sin tener que cargar la
+   * obligación a mano por separado. Todo en una sola transacción: si falla
+   * la obligación, el remito tampoco queda emitido.
+   *
+   * Dirección según tipo de remito: "S" (salida, le entregamos algo a la
+   * entidad) => la entidad nos debe (a_cobrar). "E" (entrada, la entidad nos
+   * entrega algo) => nosotros le debemos (a_pagar). Remitos sin entidadId no
+   * generan nada (no hay a quién asignarle el movimiento).
+   */
+  async emitir(id: string, usuarioId?: string) {
     const remito = await this.findOne(id);
 
     if (remito.estado !== 'borrador') {
@@ -131,24 +154,71 @@ export class RemitosService {
       throw new BadRequestException('No se puede emitir un remito sin detalles');
     }
 
-    return this.prisma.db.remito.update({
-      where: { id },
-      data: { estado: 'emitido' },
-      include: INCLUDE_DETALLE,
+    return this.prisma.db.$transaction(async (tx) => {
+      await tx.remito.update({ where: { id }, data: { estado: 'emitido' } });
+
+      if (remito.entidadId) {
+        const total = remito.detalles.reduce((sum, d) => sum + d.subtotal.toNumber(), 0);
+
+        await this.obligacionesService.createWithinTx(
+          tx,
+          {
+            entidadId: remito.entidadId,
+            monto: total,
+            tipo: remito.tipo === 'S' ? 'venta' : 'compra',
+            descripcion: `Remito ${remito.numero ?? remito.id.slice(0, 8)}`,
+            direccion: remito.tipo === 'S' ? 'a_cobrar' : 'a_pagar',
+            remitoId: remito.id,
+          },
+          usuarioId,
+        );
+      }
+
+      // Se relee con `tx` (no this.findOne, que usaría una conexión fuera
+      // de la transacción) para traer la obligación recién creada -- el
+      // primer update de arriba se hizo antes de que existiera todavía.
+      return tx.remito.findUniqueOrThrow({ where: { id }, include: INCLUDE_DETALLE });
     });
   }
 
-  async anular(id: string) {
+  /**
+   * Si el remito tiene una obligación generada automáticamente (ver
+   * emitir()) y todavía no tiene pagos aplicados, se anula junto con el
+   * remito (revierte el movimiento en la cuenta corriente). Si ya tiene
+   * pagos aplicados, se bloquea -- mismo criterio que ya usa
+   * ObligacionesService.anular() para no dejar la cuenta corriente
+   * inconsistente.
+   */
+  async anular(id: string, usuarioId?: string) {
     const remito = await this.findOne(id);
 
     if (remito.estado === 'anulado') {
       throw new ConflictException('El remito ya está anulado');
     }
 
-    return this.prisma.db.remito.update({
-      where: { id },
-      data: { estado: 'anulado' },
-      include: INCLUDE_DETALLE,
+    const obligacion = remito.obligacionGenerada;
+    if (obligacion && obligacion.estado !== 'anulada') {
+      const montoPagado = obligacion.aplicaciones.reduce(
+        (sum, a) => sum + a.monto.toNumber(),
+        0,
+      );
+      if (montoPagado > 0) {
+        throw new ConflictException(
+          'No se puede anular: el remito ya tiene pagos aplicados en la cuenta corriente',
+        );
+      }
+    }
+
+    return this.prisma.db.$transaction(async (tx) => {
+      await tx.remito.update({ where: { id }, data: { estado: 'anulado' } });
+
+      if (obligacion && obligacion.estado !== 'anulada') {
+        await this.obligacionesService.anularWithinTx(tx, obligacion.id, usuarioId);
+      }
+
+      // Mismo motivo que en emitir(): tx, no this.findOne, para leer dentro
+      // de la misma transacción el estado ya actualizado.
+      return tx.remito.findUniqueOrThrow({ where: { id }, include: INCLUDE_DETALLE });
     });
   }
 

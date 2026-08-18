@@ -9,5 +9,8 @@ import { CuentasCorrientesService } from './cuentas-corrientes.service';
 @Module({
   controllers: [ObligacionesController, PagosController, CuentaCorrienteController],
   providers: [ObligacionesService, PagosService, CuentasCorrientesService],
+  // ObligacionesService la usa también RemitosModule para generar la
+  // obligación automática al emitir un remito, ver RemitosService.emitir().
+  exports: [ObligacionesService],
 })
 export class CuentasModule {}

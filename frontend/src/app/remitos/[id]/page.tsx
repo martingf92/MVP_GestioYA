@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Remito,
   Producto,
@@ -179,6 +180,26 @@ export default function RemitoDetallePage({
         <dd>{new Date(remito.fecha).toLocaleString()}</dd>
         <dt className="text-gray-500">Entidad</dt>
         <dd>{remito.entidad?.nombre ?? '—'}</dd>
+        {remito.obligacionGenerada && remito.obligacionGenerada.estado !== 'anulada' && (
+          <>
+            <dt className="text-gray-500">Cuenta corriente</dt>
+            <dd>
+              {remito.obligacionGenerada.direccion === 'a_pagar'
+                ? 'Generó una deuda nuestra con la entidad'
+                : 'Generó una deuda de la entidad hacia nosotros'}{' '}
+              (
+              {remito.entidadId && (
+                <Link
+                  href={`/entidades/${remito.entidadId}/cuenta-corriente`}
+                  className="underline"
+                >
+                  ver cuenta corriente
+                </Link>
+              )}
+              )
+            </dd>
+          </>
+        )}
       </dl>
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}

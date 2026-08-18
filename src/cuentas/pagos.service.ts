@@ -7,7 +7,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CuentasCorrientesService } from './cuentas-corrientes.service';
-import { ObligacionesService } from './obligaciones.service';
+import { ObligacionesService, signoDireccion } from './obligaciones.service';
 import { CreatePagoDto } from './dto/create-pago.dto';
 import { ListPagosQueryDto } from './dto/list-pagos-query.dto';
 
@@ -93,11 +93,18 @@ export class PagosService {
         });
 
         if (obligacion.entidadId) {
+          // Pagar una obligación mueve el saldo en sentido contrario al que
+          // la generó: a_cobrar (+monto al crear) se cobra restando
+          // (-aplicacion.monto, como ya hacía este código); a_pagar
+          // (-monto al crear, ver ObligacionesService.createWithinTx) se
+          // salda sumando (+aplicacion.monto) -- de ahí el signo invertido
+          // acá respecto de ObligacionesService.
+          const signo = signoDireccion(obligacion.direccion);
           await this.cuentasCorrientes.registrarMovimiento(
             tx,
             obligacion.entidadId,
-            'haber',
-            -aplicacion.monto,
+            signo > 0 ? 'haber' : 'debe',
+            -signo * aplicacion.monto,
             `Pago aplicado a obligación: ${obligacion.descripcion ?? obligacion.tipo ?? obligacion.id}`,
             created.id,
             usuarioId,
@@ -155,11 +162,14 @@ export class PagosService {
 
       for (const aplicacion of pago.aplicaciones) {
         if (aplicacion.obligacion.entidadId) {
+          // Reversión exacta del movimiento que hizo la aplicación del pago
+          // (mismo signo que usó, ver arriba).
+          const signo = signoDireccion(aplicacion.obligacion.direccion);
           await this.cuentasCorrientes.registrarMovimiento(
             tx,
             aplicacion.obligacion.entidadId,
             'ajuste',
-            aplicacion.monto.toNumber(),
+            signo * aplicacion.monto.toNumber(),
             `Reversión de pago aplicado a obligación: ${aplicacion.obligacion.descripcion ?? aplicacion.obligacion.tipo ?? aplicacion.obligacion.id}`,
             id,
             usuarioId,

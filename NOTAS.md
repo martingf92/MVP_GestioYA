@@ -439,3 +439,59 @@ Los 5 módulos del MVP (Entidades, Productos, Remitos, Cuentas, Tareas) tienen C
 ## Siguiente paso sugerido
 
 Diseño visual del frontend (cuando Martín defina la dirección), o seguir iterando funcionalidad si aparecen huecos al usar el MVP en la práctica.
+
+---
+
+# Entrega 13: Remitos conectados a Cuenta Corriente + dirección de deuda + Acreedor
+
+## Qué incluye esto
+
+Gap real encontrado por Martín usando el MVP: emitir un Remito no dejaba nada asentado en la Cuenta Corriente de la entidad -- había que cargar la Obligación a mano por separado. Al investigar salió a la luz algo más profundo: el módulo de Cuentas solo sabía modelar "la entidad nos debe" (`ObligacionesService.create` siempre registraba `'debe'` positivo); no existía la dirección inversa "nosotros le debemos a la entidad", necesaria para que una compra a un proveedor tuviera sentido.
+
+- `prisma/schema.prisma` -- `Obligacion.direccion` (`'a_cobrar' | 'a_pagar'`, default `'a_cobrar'` para no romper nada existente), `Obligacion.remitoId` (FK opcional única a `Remito`), modelo `Acreedor` (mismo patrón que `Proveedor`, no excluyente con él).
+- `src/cuentas/obligaciones.service.ts` -- `signoDireccion()` centraliza el signo (+1 a_cobrar, -1 a_pagar); `createWithinTx`/`anularWithinTx` son la lógica de siempre pero componible dentro de una transacción externa (la usa `RemitosService`).
+- `src/cuentas/pagos.service.ts` -- aplicar/revertir un pago ahora invierte el signo según la dirección de la obligación que está pagando.
+- `src/remitos/remitos.service.ts` -- `emitir()` genera automáticamente una Obligación si el remito tiene entidad (S=a_cobrar/venta, E=a_pagar/compra), todo en una sola transacción. `anular()` cascadea: anula la obligación generada si no tiene pagos aplicados, o bloquea la anulación si ya los tiene (409, mismo criterio que ya usaba `ObligacionesService.anular`).
+- `src/entidades/` -- endpoints `PUT`/`DELETE /entidades/:id/acreedor`, filtro `?tipo=acreedor`.
+- Frontend: selector de dirección en el alta manual de Obligaciones, columna "Dirección" en la tabla, checkboxes Cliente/Proveedor/Acreedor al crear una Entidad (antes el frontend no tenía forma de cargar ninguno de los tres), columna "Tipo" en Entidades, nota con link a la cuenta corriente en el detalle de un Remito emitido.
+
+## Decisión de diseño
+
+Reusar toda la maquinaria de `Obligacion` (pagos parciales, vencimiento, estado) para lo que genera el Remito, en vez de un movimiento suelto en `MovimientoCuenta` -- confirmado con Martín antes de tocar el schema (mismas tres preguntas: qué generar, si agregar la dirección inversa, cómo modelar Proveedor vs Acreedor).
+
+## Probado end-to-end contra el servidor real y Postgres
+
+Remito de salida a un cliente, emitido → genera Obligación `a_cobrar`, saldo +monto. Remito de entrada de un proveedor, emitido → genera Obligación `a_pagar`, saldo -monto (le debemos). Pago parcial sobre la obligación `a_pagar` → saldo sube hacia 0 (no baja). Anular el remito de salida sin pagos aplicados → cascada: obligación anulada, saldo vuelve a 0. Anular el remito de entrada con un pago ya aplicado → bloqueado (409). Alta de Acreedor sobre una entidad que ya era Proveedor → coexisten. Filtro `?tipo=acreedor`. Todo repetido en el navegador real contra el backend real, sin errores de consola.
+
+## Pendiente
+
+- No hay todavía una vista "comparativa" Proveedor vs Acreedor en el frontend (Martín lo mencionó como algo a futuro, no para ahora) -- el modelo de datos ya lo soporta (`Entidad.proveedor`/`Entidad.acreedor` independientes, `Obligacion.direccion` filtrable).
+- Remitos sin `entidadId` (permitido por el schema) siguen sin generar nada en Cuentas -- no hay a quién asignarle el movimiento, comportamiento esperado.
+
+## Siguiente paso sugerido
+
+Diseño visual del frontend, o la vista comparativa Proveedor vs Acreedor si Martín la prioriza antes que el diseño.
+
+---
+
+# Entrega 14: Auditoría, logs de errores técnicos, y base de la comparativa Proveedor/Acreedor
+
+## Qué incluye esto
+
+- `prisma/schema.prisma` -- modelo `LogError` (errores técnicos 5xx, distinto de `LogAccion` que es auditoría de negocio). No entra en el allowlist de `tenant.extension.ts` a propósito: un error puede pasar antes de que exista `empresaId` en contexto, o justamente porque el contexto de tenant falló -- se escribe siempre vía `prisma.raw`.
+- `src/common/audit/audit.interceptor.ts` -- interceptor global (`APP_INTERCEPTOR`) que audita cada `POST`/`PATCH`/`PUT`/`DELETE` exitoso de toda la app en `LogAccion`, sin tener que tocar cada service. Guarda "qué se pidió cambiar" (el body de la request), no un diff campo-por-campo real -- decisión tomada con Martín: cubre los 5 módulos + Auth de una sola vez, menos preciso si un `PATCH` cambia solo parte de los campos. Excluye rutas de sesión (`auth/login`, `auth/refresh`, `auth/logout`) y redacta `password`/`token`/`accessToken`/`refreshToken`/`secret` antes de guardar.
+- `src/common/errors/error-log.filter.ts` -- filtro global (`APP_FILTER`, `@Catch()`) que reemplaza el manejo de excepciones default de Nest. Mantiene el mismo formato de respuesta de siempre (no rompe nada existente), pero persiste en `LogError` los errores 5xx reales con ruta, método, usuario, mensaje y stack trace. Un 400/404/409 (respuesta esperada del negocio) no se guarda -- decisión tomada con Martín para no ensuciar la tabla con "ruido".
+- `src/common/audit/` -- `GET /auditoria` y `GET /logs-error` (ambos `AdminGuard`), de solo lectura -- sin esto los datos quedaban inaccesibles sin entrar directo a Postgres.
+- `src/cuentas/obligaciones.service.ts` -- `GET /obligaciones` ahora acepta `?tipoEntidad=proveedor|acreedor` y `?orderDir=asc|desc`, e incluye los datos del remito de origen (número, fecha, tipo) cuando corresponde. Es la base de datos para la tabla comparativa Proveedor vs Acreedor que pidió Martín -- los gráficos quedan para la vuelta de diseño de UI.
+
+## Probado
+
+Alta/baja de una entidad quedaron auditadas con el body correcto. El cambio de password quedó auditado con el campo `password` redactado (`[REDACTADO]`, nunca en texto plano). Login/refresh/logout no generaron entradas de auditoría. Un error 400 esperado no generó `LogError`; un error forzado (probado invocando el filtro directamente, no fue posible provocar un 500 real de forma orgánica vía HTTP porque Nest ya normaliza correctamente los errores comunes a 4xx) sí quedó guardado completo con stack trace, y el cliente solo recibió "Internal server error" genérico, sin filtrar detalles internos. Filtro `tipoEntidad`, `orderDir` y el remito incluido en `GET /obligaciones`, probados los tres.
+
+## Pendiente
+
+- Sin pantalla en el frontend todavía para auditoría, logs de errores, ni la tabla comparativa Proveedor/Acreedor -- son datos de backend listos para cuando se encare la sección de "Reportes" en la UI.
+
+## Siguiente paso sugerido
+
+Diseño visual del frontend (incluyendo dónde va "Reportes" en la navegación), o seguir sumando funcionalidad de backend si aparecen más huecos al usar el MVP.

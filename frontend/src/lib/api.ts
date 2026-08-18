@@ -19,6 +19,10 @@ export interface Entidad {
   activo: boolean;
   cliente: { categoria: string | null } | null;
   proveedor: { cbu: string | null } | null;
+  // Distinto de proveedor: un acreedor es un compromiso general (alquiler,
+  // servicio, préstamo) sin que medie compra de mercadería -- no son
+  // excluyentes, ver NOTAS.md.
+  acreedor: { tipoDeuda: string | null } | null;
 }
 
 export interface UnidadMedida {
@@ -58,6 +62,9 @@ export interface Remito {
   entidad: Entidad | null;
   estado: 'borrador' | 'emitido' | 'anulado';
   detalles: DetalleRemito[];
+  // Obligación creada automáticamente al emitir (si el remito tiene
+  // entidad), ver RemitosService.emitir() en el backend.
+  obligacionGenerada?: Obligacion | null;
 }
 
 export interface MovimientoCuenta {
@@ -92,6 +99,9 @@ export interface Obligacion {
   fechaVencimiento: string | null;
   monto: string;
   estado: 'pendiente' | 'parcial' | 'cancelada' | 'anulada';
+  // a_cobrar: la entidad nos debe. a_pagar: nosotros le debemos a la
+  // entidad. Ver Obligacion.direccion en el schema del backend.
+  direccion: 'a_cobrar' | 'a_pagar';
   montoPagado: number;
   saldo: number;
   vencida: boolean;
@@ -229,15 +239,31 @@ export function createEntidad(input: {
   documentoNro?: string;
   email?: string;
   telefono?: string;
+  esCliente?: boolean;
+  esProveedor?: boolean;
+  esAcreedor?: boolean;
 }) {
+  const { esCliente, esProveedor, esAcreedor, ...base } = input;
   return request<Entidad>('/entidades', {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: JSON.stringify({
+      ...base,
+      cliente: esCliente ? {} : undefined,
+      proveedor: esProveedor ? {} : undefined,
+      acreedor: esAcreedor ? {} : undefined,
+    }),
   });
 }
 
 export function deleteEntidad(id: string) {
   return request<void>(`/entidades/${id}`, { method: 'DELETE' });
+}
+
+export function upsertAcreedor(entidadId: string, input: { tipoDeuda?: string }) {
+  return request<{ entidadId: string; tipoDeuda: string | null }>(
+    `/entidades/${entidadId}/acreedor`,
+    { method: 'PUT', body: JSON.stringify(input) },
+  );
 }
 
 export function listUnidadesMedida() {
@@ -353,6 +379,7 @@ export function createObligacion(input: {
   tipo?: string;
   descripcion?: string;
   fechaVencimiento?: string;
+  direccion?: 'a_cobrar' | 'a_pagar';
 }) {
   return request<Obligacion>('/obligaciones', {
     method: 'POST',

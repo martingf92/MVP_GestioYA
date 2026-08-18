@@ -11,8 +11,8 @@ export class ListEntidadesQueryDto {
   activo?: boolean;
 
   @IsOptional()
-  @IsIn(['cliente', 'proveedor'])
-  tipo?: 'cliente' | 'proveedor';
+  @IsIn(['cliente', 'proveedor', 'acreedor'])
+  tipo?: 'cliente' | 'proveedor' | 'acreedor';
 
   @IsOptional()
   @Type(() => Number)

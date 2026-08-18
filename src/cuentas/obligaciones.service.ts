@@ -14,11 +14,14 @@ import { ListObligacionesQueryDto } from './dto/list-obligaciones-query.dto';
 type TxClient = any;
 
 const INCLUDE_OBLIGACION = {
-  entidad: true,
+  entidad: { include: { proveedor: true, acreedor: true } },
   // Solo cuentan las aplicaciones de pagos que no fueron anulados (estado
   // != 'rechazado', ver PagosService.anular) -- si se incluyeran todas, un
   // pago anulado seguiría "contando" como pagado.
   aplicaciones: { where: { pago: { estado: { not: 'rechazado' } } } },
+  // Para la vista comparativa Proveedor vs Acreedor: de dónde vino la
+  // obligación cuando se generó automáticamente al emitir un remito.
+  remito: { select: { numero: true, fecha: true, tipo: true } },
 } as const;
 
 type ObligacionConAplicaciones = Prisma.ObligacionGetPayload<{
@@ -36,6 +39,24 @@ function withComputed(o: ObligacionConAplicaciones) {
   return { ...o, montoPagado, saldo: monto - montoPagado, vencida };
 }
 
+// a_cobrar (la entidad nos debe): +1, mismo signo que ya usaba el código
+// original. a_pagar (nosotros le debemos a la entidad): -1, hace que el
+// saldo de su cuenta corriente baje de 0 en vez de subir. Ver comentario de
+// Obligacion.direccion en schema.prisma.
+export function signoDireccion(direccion: string): 1 | -1 {
+  return direccion === 'a_pagar' ? -1 : 1;
+}
+
+type CreateObligacionParams = {
+  entidadId?: string;
+  monto: number;
+  tipo?: string;
+  descripcion?: string;
+  direccion?: string;
+  fechaVencimiento?: Date;
+  remitoId?: string;
+};
+
 @Injectable()
 export class ObligacionesService {
   constructor(
@@ -43,42 +64,68 @@ export class ObligacionesService {
     private readonly cuentasCorrientes: CuentasCorrientesService,
   ) {}
 
+  /**
+   * Lógica de creación reutilizable dentro de una transacción externa --
+   * usado por create() (abre su propia transacción) y por
+   * RemitosService.emitir() (la obligación tiene que quedar atómica con el
+   * cambio de estado del remito, ver NOTAS.md).
+   */
+  async createWithinTx(tx: TxClient, params: CreateObligacionParams, usuarioId?: string) {
+    const direccion = params.direccion ?? 'a_cobrar';
+
+    const created = await tx.obligacion.create({
+      // empresaId lo inyecta tenant.extension.ts en runtime, ver
+      // entidades.service.ts para el mismo patrón.
+      data: {
+        entidadId: params.entidadId,
+        monto: params.monto,
+        tipo: params.tipo,
+        descripcion: params.descripcion,
+        direccion,
+        remitoId: params.remitoId,
+        fechaVencimiento: params.fechaVencimiento,
+        estado: 'pendiente',
+      } as unknown as Prisma.ObligacionCreateInput,
+    });
+
+    if (params.entidadId) {
+      const signo = signoDireccion(direccion);
+      await this.cuentasCorrientes.registrarMovimiento(
+        tx,
+        params.entidadId,
+        signo > 0 ? 'debe' : 'haber',
+        signo * params.monto,
+        `Obligación: ${params.descripcion ?? params.tipo ?? created.id}`,
+        created.id,
+        usuarioId,
+      );
+    }
+
+    return created;
+  }
+
   async create(dto: CreateObligacionDto, usuarioId: string) {
     if (dto.entidadId) {
       await this.assertEntidadExists(dto.entidadId);
     }
 
-    const obligacion = await this.prisma.db.$transaction(async (tx) => {
-      const created = await tx.obligacion.create({
-        // empresaId lo inyecta tenant.extension.ts en runtime, ver
-        // entidades.service.ts para el mismo patrón.
-        data: {
+    const obligacion = await this.prisma.db.$transaction((tx) =>
+      this.createWithinTx(
+        tx,
+        {
           entidadId: dto.entidadId,
           monto: dto.monto,
           tipo: dto.tipo,
           descripcion: dto.descripcion,
+          direccion: dto.direccion,
           // new Date(...), no el string crudo: class-validator@IsDateString
           // acepta fechas sin horario ("2020-01-01"), pero Prisma exige un
           // datetime ISO completo y tira 500 si le llega solo la fecha.
           fechaVencimiento: dto.fechaVencimiento ? new Date(dto.fechaVencimiento) : undefined,
-          estado: 'pendiente',
-        } as unknown as Prisma.ObligacionCreateInput,
-      });
-
-      if (dto.entidadId) {
-        await this.cuentasCorrientes.registrarMovimiento(
-          tx,
-          dto.entidadId,
-          'debe',
-          dto.monto,
-          `Obligación: ${dto.descripcion ?? dto.tipo ?? created.id}`,
-          created.id,
-          usuarioId,
-        );
-      }
-
-      return created;
-    });
+        },
+        usuarioId,
+      ),
+    );
 
     return this.findOne(obligacion.id);
   }
@@ -87,13 +134,20 @@ export class ObligacionesService {
     const where: Prisma.ObligacionWhereInput = {
       entidadId: query.entidadId,
       estado: query.estado,
+      direccion: query.direccion,
+      entidad:
+        query.tipoEntidad === 'proveedor'
+          ? { proveedor: { isNot: null } }
+          : query.tipoEntidad === 'acreedor'
+            ? { acreedor: { isNot: null } }
+            : undefined,
     };
 
     const [data, total] = await Promise.all([
       this.prisma.db.obligacion.findMany({
         where,
         include: INCLUDE_OBLIGACION,
-        orderBy: { fechaEmision: 'desc' },
+        orderBy: { fechaEmision: query.orderDir ?? 'desc' },
         skip: query.skip,
         take: query.take,
       }),
@@ -128,23 +182,33 @@ export class ObligacionesService {
       );
     }
 
-    await this.prisma.db.$transaction(async (tx) => {
-      await tx.obligacion.update({ where: { id }, data: { estado: 'anulada' } });
-
-      if (obligacion.entidadId) {
-        await this.cuentasCorrientes.registrarMovimiento(
-          tx,
-          obligacion.entidadId,
-          'ajuste',
-          -obligacion.monto.toNumber(),
-          `Anulación de obligación: ${obligacion.descripcion ?? obligacion.tipo ?? id}`,
-          id,
-          usuarioId,
-        );
-      }
-    });
+    await this.prisma.db.$transaction((tx) => this.anularWithinTx(tx, id, usuarioId));
 
     return this.findOne(id);
+  }
+
+  /**
+   * Misma lógica que anular(), pero componible dentro de una transacción
+   * externa -- usado también por RemitosService.anular() cuando el remito
+   * tiene una obligación generada automáticamente sin pagos aplicados.
+   */
+  async anularWithinTx(tx: TxClient, id: string, usuarioId?: string) {
+    const obligacion = await tx.obligacion.findUniqueOrThrow({ where: { id } });
+
+    await tx.obligacion.update({ where: { id }, data: { estado: 'anulada' } });
+
+    if (obligacion.entidadId) {
+      const signo = signoDireccion(obligacion.direccion);
+      await this.cuentasCorrientes.registrarMovimiento(
+        tx,
+        obligacion.entidadId,
+        'ajuste',
+        -signo * obligacion.monto.toNumber(),
+        `Anulación de obligación: ${obligacion.descripcion ?? obligacion.tipo ?? id}`,
+        id,
+        usuarioId,
+      );
+    }
   }
 
   /**

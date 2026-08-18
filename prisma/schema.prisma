@@ -33,6 +33,7 @@ model Empresa {
   pagos             Pago[]
   tareas            Tarea[]
   logs              LogAccion[]
+  logsError         LogError[]
 }
 
 // ============================================================
@@ -117,6 +118,7 @@ model Entidad {
 
   cliente         Cliente?
   proveedor       Proveedor?
+  acreedor        Acreedor?
   remitos         Remito[]
   cuentaCorriente CuentaCorriente?
   obligaciones    Obligacion[]
@@ -144,6 +146,20 @@ model Proveedor {
   entidad       Entidad @relation(fields: [entidadId], references: [id])
   cbu           String?
   aliasCbu      String?
+  condicionPago String?
+  observaciones String?
+}
+
+// Distinto de Proveedor a pedido explícito de Martín: un Proveedor vende
+// mercadería/insumos (se liga a Remitos de entrada), un Acreedor es un
+// compromiso general de la empresa con esa entidad (alquiler, servicio,
+// préstamo) sin que medie necesariamente una compra de mercadería. No son
+// excluyentes -- una misma Entidad puede tener Proveedor y Acreedor a la vez
+// (ej. una imprenta que también le alquila un depósito a la empresa).
+model Acreedor {
+  entidadId     String  @id
+  entidad       Entidad @relation(fields: [entidadId], references: [id])
+  tipoDeuda     String? // alquiler | servicio | prestamo | otro
   condicionPago String?
   observaciones String?
 }
@@ -205,6 +221,11 @@ model Remito {
   usuarioId String?
 
   detalles DetalleRemito[]
+  // Obligación generada automáticamente al emitir este remito (si tiene
+  // entidadId), ver NOTAS.md -- pedido de Martín: un remito emitido tiene
+  // que quedar asentado solo en la cuenta corriente de la entidad, sin
+  // tener que cargar la obligación a mano por separado.
+  obligacionGenerada Obligacion?
 
   @@index([empresaId])
   @@index([empresaId, fecha])
@@ -274,6 +295,18 @@ model Obligacion {
   moneda           String    @default("ARS")
   estado           String    @default("pendiente") // pendiente | parcial | cancelada | anulada
   prioridad        String?
+  // a_cobrar: la entidad le debe a la empresa (venta, caso original -- único
+  // que existía antes de esto). a_pagar: la empresa le debe a la entidad
+  // (compra a un proveedor, alquiler con un acreedor). Define el signo del
+  // movimiento en CuentaCorriente, ver ObligacionesService/PagosService.
+  // Default "a_cobrar" para no romper obligaciones ya creadas antes de este
+  // campo (todas eran, de hecho, a_cobrar -- era la única dirección que el
+  // código sabía manejar).
+  direccion        String    @default("a_cobrar")
+  // Seteado solo si esta Obligación fue generada automáticamente al emitir
+  // un Remito (ver RemitosService.emitir). Null si se cargó a mano.
+  remitoId         String?   @unique
+  remito           Remito?   @relation(fields: [remitoId], references: [id])
 
   aplicaciones AplicacionPago[]
 
@@ -387,6 +420,28 @@ model LogAccion {
   diffJson   Json?
 
   @@index([empresaId, tabla, registroId])
+}
+
+// Errores técnicos de la aplicación (5xx), distinto de LogAccion (que es
+// auditoría de negocio). No entra en el allowlist de tenant.extension.ts a
+// propósito: un error puede pasar antes de que exista empresaId en contexto,
+// o justamente porque el contexto de tenant falló -- el registro del error
+// no puede depender de que el tenant esté resuelto. Se escribe siempre vía
+// prisma.raw. Ver ErrorLogFilter.
+model LogError {
+  id         String   @id @default(uuid())
+  empresaId  String?
+  empresa    Empresa? @relation(fields: [empresaId], references: [id])
+  usuarioId  String?
+  metodo     String
+  ruta       String
+  statusCode Int
+  mensaje    String
+  stack      String?
+  fecha      DateTime @default(now())
+
+  @@index([fecha])
+  @@index([empresaId])
 }
 
 // ============================================================

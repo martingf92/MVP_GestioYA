@@ -18,6 +18,7 @@ import { UpdateEntidadDto } from './dto/update-entidad.dto';
 import { ListEntidadesQueryDto } from './dto/list-entidades-query.dto';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
+import { CreateAcreedorDto } from './dto/create-acreedor.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('entidades')
@@ -71,5 +72,16 @@ export class EntidadesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   removeProveedor(@Param('id') id: string) {
     return this.entidadesService.removeProveedor(id);
+  }
+
+  @Put(':id/acreedor')
+  upsertAcreedor(@Param('id') id: string, @Body() dto: CreateAcreedorDto) {
+    return this.entidadesService.upsertAcreedor(id, dto);
+  }
+
+  @Delete(':id/acreedor')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeAcreedor(@Param('id') id: string) {
+    return this.entidadesService.removeAcreedor(id);
   }
 }

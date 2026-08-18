@@ -58,7 +58,14 @@ backend real — ver `NOTAS.md` (entregas 1 a 12) para el detalle completo.
 Diseño visual del frontend (cuando Martín defina la dirección), o seguir
 sumando funcionalidad si aparecen huecos al usar el MVP en la práctica.
 Pendiente aparte, no bloqueante: envío real de notificaciones por
-email/SMS/WhatsApp (necesita decidir proveedor).
+email/SMS/WhatsApp (necesita decidir proveedor). Ver NOTAS.md entrega 13
+para lo último: Remitos ahora generan Obligación automática en Cuenta
+Corriente al emitirse, con dirección a_cobrar/a_pagar, y Entidad distingue
+Proveedor de Acreedor (no excluyentes). Ver entrega 14: auditoría de
+negocio (LogAccion) y logs de errores técnicos (LogError) ya implementados
+vía interceptor/filtro globales, `GET /obligaciones` ya soporta el filtro
+por tipoEntidad para la comparativa Proveedor vs Acreedor. Falta la UI de
+Reportes (auditoría, errores, comparativa) -- el backend ya está listo.
 
 ## Documentos de referencia
 - `GESTIOYA.md` — contexto de producto completo, reglas del equipo, qué NO está

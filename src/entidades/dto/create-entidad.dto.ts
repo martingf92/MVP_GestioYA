@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { CreateClienteDto } from './create-cliente.dto';
 import { CreateProveedorDto } from './create-proveedor.dto';
+import { CreateAcreedorDto } from './create-acreedor.dto';
 
 export class CreateEntidadDto {
   @IsString()
@@ -43,4 +44,9 @@ export class CreateEntidadDto {
   @ValidateNested()
   @Type(() => CreateProveedorDto)
   proveedor?: CreateProveedorDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CreateAcreedorDto)
+  acreedor?: CreateAcreedorDto;
 }

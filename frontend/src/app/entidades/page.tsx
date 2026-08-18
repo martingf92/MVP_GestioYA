@@ -21,6 +21,9 @@ export default function EntidadesPage() {
   const [error, setError] = useState<string | null>(null);
   const [nombre, setNombre] = useState('');
   const [documentoNro, setDocumentoNro] = useState('');
+  const [esCliente, setEsCliente] = useState(false);
+  const [esProveedor, setEsProveedor] = useState(false);
+  const [esAcreedor, setEsAcreedor] = useState(false);
   const [creating, setCreating] = useState(false);
 
   async function refresh() {
@@ -58,9 +61,15 @@ export default function EntidadesPage() {
       await createEntidad({
         nombre,
         documentoNro: documentoNro || undefined,
+        esCliente,
+        esProveedor,
+        esAcreedor,
       });
       setNombre('');
       setDocumentoNro('');
+      setEsCliente(false);
+      setEsProveedor(false);
+      setEsAcreedor(false);
       await refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Error de conexión');
@@ -102,6 +111,30 @@ export default function EntidadesPage() {
             className="rounded border px-2 py-1"
           />
         </label>
+        <label className="flex items-center gap-1 text-sm">
+          <input
+            type="checkbox"
+            checked={esCliente}
+            onChange={(e) => setEsCliente(e.target.checked)}
+          />
+          Cliente
+        </label>
+        <label className="flex items-center gap-1 text-sm">
+          <input
+            type="checkbox"
+            checked={esProveedor}
+            onChange={(e) => setEsProveedor(e.target.checked)}
+          />
+          Proveedor
+        </label>
+        <label className="flex items-center gap-1 text-sm" title="Compromiso general (alquiler, servicio, préstamo), distinto de comprarle mercadería">
+          <input
+            type="checkbox"
+            checked={esAcreedor}
+            onChange={(e) => setEsAcreedor(e.target.checked)}
+          />
+          Acreedor
+        </label>
         <button
           type="submit"
           disabled={creating}
@@ -123,6 +156,7 @@ export default function EntidadesPage() {
             <tr className="border-b text-left">
               <th className="py-2">Nombre</th>
               <th className="py-2">Documento</th>
+              <th className="py-2">Tipo</th>
               <th className="py-2">Activo</th>
               <th className="py-2"></th>
             </tr>
@@ -132,6 +166,11 @@ export default function EntidadesPage() {
               <tr key={e.id} className="border-b">
                 <td className="py-2">{e.nombre}</td>
                 <td className="py-2">{e.documentoNro ?? '—'}</td>
+                <td className="py-2 text-xs text-gray-600">
+                  {[e.cliente && 'Cliente', e.proveedor && 'Proveedor', e.acreedor && 'Acreedor']
+                    .filter(Boolean)
+                    .join(', ') || '—'}
+                </td>
                 <td className="py-2">{e.activo ? 'sí' : 'no'}</td>
                 <td className="py-2 text-right">
                   <Link href={`/entidades/${e.id}/cuenta-corriente`} className="underline">

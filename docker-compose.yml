@@ -1,0 +1,61 @@
+# Producción (DonWeb Cloud Server) -- ver DEPLOYMENT.md para el proceso
+# completo. No probado contra un Docker real todavía (esta máquina de
+# desarrollo usa Postgres nativo, sin Docker, a propósito -- ver NOTAS.md
+# entrega 3). Probar este archivo de punta a punta es un paso pendiente
+# antes de usarlo en el servidor real.
+#
+# postgres NO publica su puerto al host: solo es alcanzable dentro de la
+# red interna de Docker Compose, por nombre de servicio (`postgres:5432`).
+# api/web publican sus puertos localmente (127.0.0.1) -- en el servidor
+# real van detrás de un reverse proxy con HTTPS (Caddy/Nginx, ver
+# DEPLOYMENT.md sección "Dominio y HTTPS"), no expuestos directo a internet.
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-45m}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-30}
+      PORT: 3000
+      CORS_ORIGIN: ${CORS_ORIGIN}
+    ports:
+      - '127.0.0.1:3000:3000'
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      PORT: 3001
+    ports:
+      - '127.0.0.1:3001:3001'
+
+volumes:
+  postgres_data:

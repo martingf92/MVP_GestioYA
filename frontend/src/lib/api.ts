@@ -80,6 +80,16 @@ export interface MovimientoCuenta {
   concepto: string | null;
   monto: string;
   saldoResultante: string;
+  referenciaId: string | null;
+  // Resuelto en el backend a partir de referenciaId (ver
+  // CuentasCorrientesService.conOrigen): de dónde vino el movimiento.
+  origen?: {
+    tipo: 'remito' | 'obligacion' | 'pago' | 'anulacion' | 'otro';
+    obligacionId: string | null;
+    remito: { id: string; numero: string | null } | null;
+    pago: { id: string; medio: string | null; cheques: number } | null;
+    anulado: boolean;
+  };
 }
 
 export interface CuentaCorriente {
@@ -111,6 +121,10 @@ export interface Obligacion {
   montoPagado: number;
   saldo: number;
   vencida: boolean;
+  fechaEmision: string;
+  // Seteado si se generó sola al emitir un remito.
+  remitoId: string | null;
+  remito?: { numero: string | null; fecha: string; tipo: 'E' | 'S' } | null;
 }
 
 export interface Cheque {
@@ -118,6 +132,9 @@ export interface Cheque {
   numero: string | null;
   banco: string | null;
   monto: string | null;
+  fechaEmision: string | null;
+  fechaCobro: string | null;
+  estado: string | null;
 }
 
 export interface Pago {
@@ -409,8 +426,33 @@ export function getCuentaCorriente(entidadId: string) {
   return request<CuentaCorriente>(`/entidades/${entidadId}/cuenta-corriente`);
 }
 
-export function listObligaciones() {
-  return request<{ data: Obligacion[]; total: number }>('/obligaciones');
+function queryString(params?: Record<string, string | number | boolean | undefined>): string {
+  if (!params) return '';
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) qs.set(key, String(value));
+  }
+  const s = qs.toString();
+  return s ? `?${s}` : '';
+}
+
+export function getEntidad(id: string) {
+  return request<Entidad>(`/entidades/${id}`);
+}
+
+export function listObligaciones(params?: {
+  entidadId?: string;
+  /** Gastos generales: obligaciones sin entidad. */
+  sinEntidad?: boolean;
+  /** 'abiertas' = pendiente + parcial. */
+  estado?: Obligacion['estado'] | 'abiertas';
+  direccion?: Obligacion['direccion'];
+  tipoEntidad?: 'proveedor' | 'acreedor';
+  orderDir?: 'asc' | 'desc';
+  skip?: number;
+  take?: number;
+}) {
+  return request<{ data: Obligacion[]; total: number }>(`/obligaciones${queryString(params)}`);
 }
 
 export function createObligacion(input: {
@@ -431,16 +473,17 @@ export function anularObligacion(id: string) {
   return request<Obligacion>(`/obligaciones/${id}/anular`, { method: 'POST' });
 }
 
-export function listPagos() {
-  return request<{ data: Pago[]; total: number }>('/pagos');
+export function listPagos(params?: { entidadId?: string; skip?: number; take?: number }) {
+  return request<{ data: Pago[]; total: number }>(`/pagos${queryString(params)}`);
 }
 
 export function createPago(input: {
+  /** Sin entidad = pago de un gasto general de la empresa. */
   entidadId?: string;
   monto: number;
   medio?: string;
   aplicaciones?: { obligacionId: string; monto: number }[];
-  cheques?: { numero?: string; banco?: string; monto?: number }[];
+  cheques?: { numero?: string; banco?: string; monto?: number; fechaCobro?: string }[];
 }) {
   return request<Pago>('/pagos', {
     method: 'POST',

@@ -323,7 +323,7 @@ function EntidadCardMobile({ entidad }: { entidad: Entidad }) {
 
   return (
     <Link
-      href={`/entidades/${entidad.id}/cuenta-corriente`}
+      href={`/cuentas/corrientes/${entidad.id}`}
       className={`flex items-center gap-3 rounded-xl border border-l-4 border-line bg-paper p-4 no-underline ${borderColor} ${!entidad.activo ? 'opacity-55' : ''}`}
     >
       <Avatar nombre={entidad.nombre} tono={entidad.proveedor ? 'terra' : 'verde'} />
@@ -417,7 +417,7 @@ function EntidadesTable({ data }: { data: Entidad[] }) {
                 {formatFechaRelativa(ultimoMov)}
               </td>
               <td className="px-5 py-[14px] text-right">
-                <Link href={`/entidades/${e.id}/cuenta-corriente`} aria-label={`Ver ${e.nombre}`}>
+                <Link href={`/cuentas/corrientes/${e.id}`} aria-label={`Ver ${e.nombre}`}>
                   <ChevronRight className="h-4 w-4 text-muted" aria-hidden />
                 </Link>
               </td>

@@ -190,7 +190,7 @@ export default function RemitoDetallePage({
               (
               {remito.entidadId && (
                 <Link
-                  href={`/entidades/${remito.entidadId}/cuenta-corriente`}
+                  href={`/cuentas/corrientes/${remito.entidadId}`}
                   className="underline"
                 >
                   ver cuenta corriente

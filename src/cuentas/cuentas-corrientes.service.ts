@@ -77,6 +77,66 @@ export class CuentasCorrientesService {
       return { entidadId, saldoActual: 0, moneda: 'ARS', movimientos: [] };
     }
 
-    return cuenta;
+    return { ...cuenta, movimientos: await this.conOrigen(cuenta.movimientos) };
+  }
+
+  /**
+   * MovimientoCuenta solo guarda un concepto en texto + referenciaId. Para
+   * que la pantalla muestre de dónde vino cada movimiento (remito, cobro,
+   * anulación) y si después se anuló, se resuelve la referencia contra
+   * Obligacion / Pago en lugar de parsear el texto del concepto. Las
+   * consultas van por `db` (tenant-scoped), así que una referencia de otra
+   * empresa simplemente no se encuentra.
+   */
+  private async conOrigen<T extends { tipo: string; referenciaId: string | null }>(movimientos: T[]) {
+    const refs = [...new Set(movimientos.map((m) => m.referenciaId).filter((r): r is string => !!r))];
+
+    const [obligaciones, pagos] = await Promise.all([
+      this.prisma.db.obligacion.findMany({
+        where: { id: { in: refs } },
+        select: { id: true, estado: true, remito: { select: { id: true, numero: true } } },
+      }),
+      this.prisma.db.pago.findMany({
+        where: { id: { in: refs } },
+        select: { id: true, estado: true, medio: true, _count: { select: { cheques: true } } },
+      }),
+    ]);
+    const obligacionPorId = new Map(obligaciones.map((o) => [o.id, o]));
+    const pagoPorId = new Map(pagos.map((p) => [p.id, p]));
+
+    return movimientos.map((m) => {
+      const obligacion = m.referenciaId ? obligacionPorId.get(m.referenciaId) : undefined;
+      const pago = m.referenciaId ? pagoPorId.get(m.referenciaId) : undefined;
+
+      // Una anulación (de obligación o de pago) se registra como 'ajuste'
+      // que compensa el movimiento original -- ver ObligacionesService /
+      // PagosService.anular.
+      const tipoOrigen =
+        m.tipo === 'ajuste'
+          ? ('anulacion' as const)
+          : pago
+            ? ('pago' as const)
+            : obligacion?.remito
+              ? ('remito' as const)
+              : obligacion
+                ? ('obligacion' as const)
+                : ('otro' as const);
+
+      return {
+        ...m,
+        origen: {
+          tipo: tipoOrigen,
+          obligacionId: obligacion?.id ?? null,
+          remito: obligacion?.remito ?? null,
+          pago: pago ? { id: pago.id, medio: pago.medio, cheques: pago._count.cheques } : null,
+          // El movimiento original sigue contando en el historial (el
+          // saldoResultante de cada fila es histórico); "anulado" solo avisa
+          // que después se compensó con un ajuste.
+          anulado:
+            m.tipo !== 'ajuste' &&
+            (obligacion?.estado === 'anulada' || pago?.estado === 'rechazado'),
+        },
+      };
+    });
   }
 }

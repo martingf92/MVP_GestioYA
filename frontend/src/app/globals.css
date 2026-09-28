@@ -67,8 +67,11 @@
   /* Breakpoint propio del shell: por debajo, tab bar inferior; desde acá,
      nav horizontal + header completo. Ver README del handoff, "Tablet
      (≤834px)". Los demás breakpoints (md/lg/xl) usan la escala default de
-     Tailwind, que ya coincide con los rangos 768/1024/1280 del handoff. */
-  --breakpoint-nav: 835px;
+     Tailwind, que ya coincide con los rangos 768/1024/1280 del handoff.
+     En rem (835px / 16) a propósito: los default de Tailwind están en rem y,
+     con unidades mezcladas, Tailwind no puede ordenarlos -- `nav:` quedaba
+     antes que `sm:` en el CSS y perdía contra él. */
+  --breakpoint-nav: 52.1875rem;
 }
 
 @layer base {

@@ -59,12 +59,30 @@ backend real — ver `NOTAS.md` (entregas 1 a 12) para el detalle completo.
 entrega 15): se hace pantalla por pantalla, **mobile-first** (muchos
 comerciantes solo usan el celular), validando cada una en 375 / 768 / 1280px
 y esperando el OK de Martín antes de pasar a la siguiente. Hechas: Login,
-Entidades, Inicio (dashboard con gráfico de ingresos/egresos). Datos siempre
-reales de la API, no mocks.
+Entidades, Inicio (dashboard con gráfico de ingresos/egresos), Cuentas
+(resumen + cuenta corriente por entidad, entregas 15 y 16). Datos siempre
+reales de la API, no mocks. Pendientes de rediseño: Remitos, Productos,
+Unidades de medida, Tareas (todavía con el estilo viejo y `components/Nav.tsx`).
+
+Cómo se trabaja el rediseño (validado con Martín, mantenerlo):
+- Una pantalla por vez; al terminar, probarla en el navegador en 375 / 768 /
+  1280px, mostrarla y **esperar su OK** antes de la siguiente.
+- Copy en castellano rioplatense (voseo). Estados vacío / cargando / error /
+  normal en cada pantalla. Todo estado con glifo + palabra, no solo color.
+- Primitivas en `frontend/src/components/ui/`, shell en `components/Shell.tsx`.
+  Para gráficos, usar el skill de dataviz (validar paleta con su script).
+- Commit/push solo cuando Martín lo pide.
+
+Entorno local (Windows): Postgres 17 nativo (servicio de Windows, arranca
+solo). En Git Bash hay que anteponer `export PATH="/c/Program Files/nodejs:$PATH"`.
+Backend `npm run start:dev` (tarda ~25s en quedar arriba), frontend
+`cd frontend && npm run dev` (puerto 3001). Usuario de prueba
+`test@gestioya.local` / `password123`.
 
 ## Próximo paso
-Seguir el rediseño con la pantalla de Cuentas (Obligaciones + Pagos +
-cuenta corriente unificadas), después Remitos y el resto.
+Seguir el rediseño con Remitos (listado, nuevo con líneas dinámicas, detalle),
+después Productos, Unidades de medida y Tareas. Decisión pendiente de Martín:
+subir Next.js 16.3.0 → 16.3.6 (aviso de seguridad crítico de `npm audit`).
 Pendiente aparte, no bloqueante: envío real de notificaciones por
 email/SMS/WhatsApp (necesita decidir proveedor). Ver NOTAS.md entrega 13
 para lo último: Remitos ahora generan Obligación automática en Cuenta

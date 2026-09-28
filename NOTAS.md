@@ -529,3 +529,34 @@ Martín eligió una dirección visual con Claude Design ("Mostrador": cálida, f
 ## Siguiente paso sugerido
 
 Pantalla de Cuentas (la de "mayor exigencia visual" según el handoff: saldo con signo, movimientos, obligaciones y pagos en pestañas).
+
+---
+
+# Entrega 16: Cuentas — cuenta corriente por entidad + resumen de Cuentas
+
+## Qué incluye esto
+
+- **Cuenta corriente de una entidad** (`/cuentas/corrientes/[id]`, pantalla 5 del handoff). Hero del saldo: frase primero ("Te deben $X" / "Le debés $X" / "Están al día"), número con signo y centavos después; fondo verde / rojo tierra / papel según el signo; aviso de lo vencido con antigüedad. Columna derecha: obligaciones abiertas, último cobro/pago, cheques pendientes. Pestañas (en la URL, `?tab=`): Movimientos / Obligaciones / Pagos y cheques / Datos. Acciones: Nueva obligación, Registrar cobro/pago (el label cambia según el signo del saldo), Anular obligación o pago. `?accion=cobrar` abre el modal directo (lo usa el botón "Cobrar" del Inicio). La ruta vieja `/entidades/[id]/cuenta-corriente` redirige a la nueva.
+- **Resumen de Cuentas** (`/cuentas`, destino del tab "Cuentas" del menú) — no estaba en el handoff, se definió con Martín: totales Te deben / Debés (clickeables → obligaciones filtradas), pestañas Cuentas corrientes (entidades con saldo ≠ 0, filtro te deben / les debés) / Obligaciones (filtros abiertas|todas, dirección, "con quién": proveedores / acreedores / gastos generales — base de la comparativa Proveedor vs Acreedor) / Pagos. Filtros en la URL. `?accion=pago` / `?accion=obligacion` abren los modales. `/obligaciones` y `/pagos` (pantallas viejas) redirigen a su pestaña.
+- **Modales reutilizables** (`frontend/src/components/cuentas/`): Nueva obligación y Registrar pago funcionan con entidad fija (desde la cuenta corriente) o con selector de entidad + "gasto general de la empresa" (desde el resumen). Registrar pago **sugiere** repartir el monto entre las deudas abiertas empezando por la que vence antes (editable; el backend sigue validando).
+- Backend: `GET /entidades/:id/cuenta-corriente` resuelve el **origen** de cada movimiento (remito / obligación manual / pago / anulación, y si después se anuló) a partir de `referenciaId`, en vez de parsear el texto del concepto. `GET /obligaciones` acepta `estado=abiertas` (pendiente + parcial) y `sinEntidad=true` (gastos generales).
+- `StatusBadge` (glifo + palabra para borrador/emitido/anulado/vencida/parcial/cancelada/pendiente), `formatMonto(..., { centavos: true })` para la cuenta corriente (extracto contable), `formatMontoConSigno`, `formatFechaPartes`.
+
+## Bug corregido (afectaba a todas las pantallas)
+
+El breakpoint propio `nav:` estaba en px (835px) y los de Tailwind en rem: con unidades mezcladas Tailwind no los puede ordenar y `nav:` quedaba antes que `sm:` en el CSS, perdiendo contra él cuando ambos tocaban la misma propiedad. Ahora es `52.1875rem`.
+
+## Decisiones
+
+- Cheques: el modelo no guarda estado al crearlos (queda null), así que "pendientes" = fecha de cobro futura o sin fecha.
+- Un movimiento anulado no se tacha como "no afecta el saldo" (como sugería el mockup): en este modelo la anulación es un ajuste compensatorio y el saldo resultante de cada fila es histórico. Se muestra atenuado con "Anulado después · se compensó con un ajuste".
+
+## Pendiente
+
+- "Resumen en PDF" de la cuenta corriente: botón visible pero deshabilitado (no hay endpoint).
+- La obligación "mercadería semanal" ($50.000, gasto general) sigue como `a_cobrar` e infla "Te deben". Martín la corrige desde Cuentas → Obligaciones → Gastos generales (anular + recargar como "A pagar").
+- Datos de prueba duplicados en la base de desarrollo ("Cliente E2E", "Proveedor E2E" x2).
+
+## Siguiente paso sugerido
+
+Remitos (listado, nuevo con líneas dinámicas — pantalla 4 del handoff —, detalle). Después: Productos, Unidades de medida, Tareas.

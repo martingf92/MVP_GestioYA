@@ -16,22 +16,22 @@ import {
   Check,
   MoreHorizontal,
   LogOut,
+  LucideIcon,
 } from 'lucide-react';
 import { clearSession, getUsuario, Usuario } from '@/lib/api';
 import { Logo } from './ui/Logo';
 import { Avatar } from './ui/Avatar';
 
-const TABS = [
+const TABS: { href: string; label: string; icon: LucideIcon; secciones?: string[] }[] = [
   { href: '/', label: 'Inicio', icon: Home },
   { href: '/entidades', label: 'Entidades', icon: Users },
   { href: '/productos', label: 'Productos', icon: Package },
   { href: '/remitos', label: 'Remitos', icon: FileText },
-  // "Cuentas" todavía no tiene una sección propia armada -- apunta al
-  // listado de Obligaciones, lo más parecido que existe hoy. Se corrige
-  // cuando se construya esa pantalla.
-  { href: '/obligaciones', label: 'Cuentas', icon: Wallet },
+  // Obligaciones, Pagos y la cuenta corriente de cada entidad viven dentro
+  // de Cuentas (no tienen tab propio, ver README del handoff).
+  { href: '/cuentas', label: 'Cuentas', icon: Wallet, secciones: ['/cuentas', '/obligaciones', '/pagos'] },
   { href: '/tareas', label: 'Tareas', icon: CheckSquare },
-] as const;
+];
 
 // La tab bar inferior (mobile/tablet) tiene 5 destinos -- Productos pasa al
 // menú "Más", ver README del handoff.
@@ -39,11 +39,10 @@ const TABS_MOBILES = TABS.filter((t) => t.href !== '/productos');
 const TAB_MAS = TABS.find((t) => t.href === '/productos')!;
 
 function useActiveTab(pathname: string) {
-  // /entidades/123/cuenta-corriente sigue siendo la sección "Entidades".
-  return (
-    TABS.find((t) => t.href !== '/' && pathname.startsWith(t.href))?.href ??
-    (pathname === '/' ? '/' : undefined)
-  );
+  if (pathname === '/') return '/';
+  return TABS.find((t) =>
+    (t.secciones ?? [t.href]).some((s) => s !== '/' && pathname.startsWith(s)),
+  )?.href;
 }
 
 export function Shell({ children }: { children: ReactNode }) {

@@ -347,7 +347,7 @@ function ParaReclamar({ items }: { items: DashboardResumen['paraReclamar'] }) {
     <Card padded={false} className="min-w-0">
       <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
         <h2 className="font-serif text-[18px] font-semibold text-ink">Para reclamar primero</h2>
-        <Link href="/obligaciones" className="text-[13px]">
+        <Link href="/cuentas?tab=obligaciones&dir=a_cobrar" className="text-[13px]">
           Ver todas
         </Link>
       </div>
@@ -374,7 +374,7 @@ function ParaReclamar({ items }: { items: DashboardResumen['paraReclamar'] }) {
                 <Avatar nombre={o.entidad.nombre} tono="verde" size={40} />
                 <div className="min-w-0 flex-1">
                   <Link
-                    href={`/entidades/${o.entidad.id}/cuenta-corriente`}
+                    href={`/cuentas/corrientes/${o.entidad.id}`}
                     className="block truncate text-[15px] font-semibold text-ink no-underline hover:underline"
                   >
                     {o.entidad.nombre}
@@ -392,7 +392,7 @@ function ParaReclamar({ items }: { items: DashboardResumen['paraReclamar'] }) {
                     {formatMonto(o.saldo)}
                   </p>
                   <Link
-                    href="/pagos"
+                    href={`/cuentas/corrientes/${o.entidad.id}?accion=cobrar`}
                     aria-label={`Cobrarle a ${o.entidad.nombre}`}
                     className={buttonClasses('secondary', 'min-h-9 px-3.5 text-[13.5px]')}
                   >
@@ -410,7 +410,7 @@ function ParaReclamar({ items }: { items: DashboardResumen['paraReclamar'] }) {
 
 const ACCESOS = [
   { href: '/remitos/nuevo', label: 'Cargar remito', icon: FileText },
-  { href: '/pagos', label: 'Registrar pago', icon: Wallet },
+  { href: '/cuentas?accion=pago', label: 'Registrar pago', icon: Wallet },
   { href: '/entidades?nueva=1', label: 'Nuevo cliente', icon: UserPlus },
   { href: '/tareas', label: 'Nueva tarea', icon: ListTodo },
 ] as const;

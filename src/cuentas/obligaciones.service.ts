@@ -132,8 +132,8 @@ export class ObligacionesService {
 
   async findAll(query: ListObligacionesQueryDto) {
     const where: Prisma.ObligacionWhereInput = {
-      entidadId: query.entidadId,
-      estado: query.estado,
+      entidadId: query.sinEntidad ? null : query.entidadId,
+      estado: query.estado === 'abiertas' ? { in: ['pendiente', 'parcial'] } : query.estado,
       direccion: query.direccion,
       entidad:
         query.tipoEntidad === 'proveedor'

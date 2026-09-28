@@ -48,15 +48,23 @@ Obligacion con entidadId opcional, Pago con pagos parciales, Cheque) y Tareas
 (con recordatorios "app" sin necesitar Redis/n8n) — todos construidos y
 probados de punta a punta contra Postgres real (PostgreSQL 17 local, sin
 Docker, ver NOTAS.md entrega 3), incluyendo aislamiento entre empresas.
-Frontend en `frontend/` (Next.js, sin diseño) con login y pantallas de
+Frontend en `frontend/` (Next.js) con login y pantallas de
 Entidades, Productos, Unidades de Medida, Remitos, Obligaciones, Pagos (con
 cuenta corriente por entidad) y Tareas (con recordatorios) — **el frontend
 ya cubre los 5 módulos del MVP**, todo probado en el navegador contra el
 backend real — ver `NOTAS.md` (entregas 1 a 12) para el detalle completo.
 
+**Rediseño en curso** (dirección visual "Mostrador", ver
+`frontend/diseño/design_handoff_gestioya_mostrador/README.md` y `NOTAS.md`
+entrega 15): se hace pantalla por pantalla, **mobile-first** (muchos
+comerciantes solo usan el celular), validando cada una en 375 / 768 / 1280px
+y esperando el OK de Martín antes de pasar a la siguiente. Hechas: Login,
+Entidades, Inicio (dashboard con gráfico de ingresos/egresos). Datos siempre
+reales de la API, no mocks.
+
 ## Próximo paso
-Diseño visual del frontend (cuando Martín defina la dirección), o seguir
-sumando funcionalidad si aparecen huecos al usar el MVP en la práctica.
+Seguir el rediseño con la pantalla de Cuentas (Obligaciones + Pagos +
+cuenta corriente unificadas), después Remitos y el resto.
 Pendiente aparte, no bloqueante: envío real de notificaciones por
 email/SMS/WhatsApp (necesita decidir proveedor). Ver NOTAS.md entrega 13
 para lo último: Remitos ahora generan Obligación automática en Cuenta

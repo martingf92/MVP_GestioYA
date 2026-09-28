@@ -495,3 +495,37 @@ Alta/baja de una entidad quedaron auditadas con el body correcto. El cambio de p
 ## Siguiente paso sugerido
 
 Diseño visual del frontend (incluyendo dónde va "Reportes" en la navegación), o seguir sumando funcionalidad de backend si aparecen más huecos al usar el MVP.
+
+---
+
+# Entrega 15: rediseño "Mostrador" — Login, Entidades e Inicio (dashboard)
+
+## Qué incluye esto
+
+Martín eligió una dirección visual con Claude Design ("Mostrador": cálida, fondo tipo papel, verde contable, serif para montos). El handoff completo (tokens, componentes, 6 pantallas con sus estados) está en `frontend/diseño/design_handoff_gestioya_mostrador/README.md` — es la fuente de verdad del diseño. Se implementa **pantalla por pantalla, mobile-first** (pedido explícito: muchos comerciantes solo tienen el celular), validando cada una en 375px / 768px / 1280px antes de seguir.
+
+- Sistema de diseño: tokens en `@theme` de `globals.css`, fuentes Source Serif 4 + Public Sans (`next/font`), íconos Lucide, breakpoint propio `nav:` (835px) donde la tab bar inferior pasa a nav horizontal.
+- `frontend/src/components/ui/` — primitivas propias (Button + `buttonClasses` para links, Input, Field, Checkbox, Card, AlertBanner, Chip, Avatar, RoleBadge, Segmented, Modal, EmptyState, Skeleton, ErrorState). Sin librería de componentes externa.
+- `frontend/src/components/Shell.tsx` — header + nav compartido. Mobile/tablet: tab bar inferior de 5 destinos + "Más". Desktop: nav horizontal de 6 tabs. Obligaciones y Pagos no están en el nav a propósito: según el diseño viven dentro de "Cuentas" (pantalla todavía no construida; hoy "Cuentas" apunta a `/obligaciones`).
+- **Login**: rediseñado. "No cerrar sesión" ahora es real (marcado = localStorage, sin marcar = sessionStorage). Los montos del panel verde se muestran tapados (`$ •••.•••`) — mostrar montos, aunque fueran de ejemplo, en una pantalla pública no tenía sentido (observación de Martín).
+- **Entidades**: tarjetas en mobile, tabla en desktop, filtros (búsqueda + chips por rol) persistidos en la URL, orden por saldo, alta en modal, estados vacío/cargando/error. Backend: `GET /entidades` trae saldo + último movimiento en la misma consulta, con `orderBy=saldo`.
+- **Inicio** (nueva, pasa a ser la pantalla de entrada después del login): saludo con resumen en una frase, KPIs (Te deben / Debés / Movimiento del mes), gráfico de ingresos vs egresos (diario 14 días / semanal 8 semanas / mensual 6 meses), "Para reclamar primero", accesos rápidos y tareas tildables. Backend nuevo: `src/dashboard/` con `GET /dashboard/resumen` y `GET /dashboard/flujo?periodo=`.
+
+## Decisiones tomadas
+
+- **Datos reales, no mocks**: el handoff sugería arrancar con datos mock; como el backend ya existía y estaba probado, se conectó directo a la API real y solo se construyó backend nuevo donde faltaba (dashboard, saldo en el listado de entidades).
+- **Ingresos/egresos se cuentan por `AplicacionPago`**, no por `Pago.monto`: la aplicación es lo que dice hacia dónde fue la plata (obligación `a_cobrar` = ingreso, `a_pagar` = egreso). Un pago sin aplicaciones no suma a ninguno. Los períodos se arman en hora argentina (`America/Argentina/Buenos_Aires`), no en la del servidor.
+- **Orden por saldo en memoria**: ordenar en Postgres a través de la relación dejaba primero las entidades sin cuenta corriente (NULLS FIRST en DESC). Se ordena en memoria tratando "sin movimientos" como 0 — correcto a la escala de una PyME; con mucho volumen convendría SQL crudo.
+- **Gráfico con Recharts** (decisión ya tomada en `CLAUDE.md`). Colores de barras un paso más vivos que los de UI (`#23805C` / `#B4492C`): los tonos de UI no pasaban el piso de croma para marcas de datos — validado con el script de dataviz (croma, contraste y separación bajo daltonismo). Leyenda con muestra + texto, tooltip por barra y vista de tabla como alternativa accesible.
+- Mensajes del mockup que no coinciden con el backend real no se copiaron: el login muestra el error real de la API (no existe bloqueo por N intentos); "Recuperar acceso" / "Crear cuenta" / selector de empresa / búsqueda global / notificaciones / "Exportar" están visualmente pero sin funcionalidad, porque dependen de cosas que no existen todavía.
+
+## Pendiente
+
+- Pantallas sin rediseñar todavía: Cuentas (Obligaciones + Pagos + cuenta corriente unificadas), Remitos (listado, nuevo con líneas dinámicas, detalle), Productos, Unidades de medida, Tareas.
+- La obligación "mercadería semanal" ($50.000, gasto general) quedó como `a_cobrar` por default porque se cargó antes de que existiera `direccion` — suma a "Te deben" en el dashboard. Corregir anulándola y volviéndola a cargar como "Les debemos".
+- Fecha de baja de una entidad: el diseño muestra "Dada de baja el DD/MM", pero el backend solo guarda `activo` (sin fecha).
+- `npm audit` del frontend: Next.js 16.3.0 tiene un aviso crítico (se corrige con 16.3.6), preexistente — pendiente de actualizar con OK de Martín.
+
+## Siguiente paso sugerido
+
+Pantalla de Cuentas (la de "mayor exigencia visual" según el handoff: saldo con signo, movimientos, obligaciones y pagos en pestañas).

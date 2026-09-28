@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Sistema de diseño "Mostrador" — ver frontend/diseño/design_handoff_gestioya_mostrador/README.md
+   para la justificación de cada token. No cambiar valores sin actualizar ese doc. */
+@theme {
+  /* Neutrales cálidos */
+  --color-ink: #23201c;
+  --color-ink-soft: #4e4740;
+  --color-muted: #8a7f70;
+  --color-placeholder: #a79c8d;
+  --color-disabled-fg: #b0a695;
+  --color-line: #e5daca;
+  --color-line-soft: #f0e9de;
+  --color-input-border: #dcd1bf;
+  --color-canvas: #f2ede4;
+  --color-paper: #fbf8f3;
+  --color-paper-hover: #fdfbf7;
+
+  /* Verde — acción y saldo a favor */
+  --color-verde: #1f5d4c;
+  --color-verde-hover: #164236;
+  --color-verde-soft: #e7f0ea;
+  --color-verde-soft-border: #c6dcd0;
+  --color-verde-on-soft: #155744;
+
+  /* Rojo tierra — saldo en contra y error */
+  --color-neg: #9c3520;
+  --color-neg-soft: #fdf2ee;
+  --color-neg-soft-border: #eac9be;
+  --color-neg-on-soft: #8a2e1b;
+  --color-neg-input-border: #c98b78;
+
+  /* Terracota — segundo acento (rol proveedor, avatares) */
+  --color-terra: #b45b33;
+  --color-terra-soft: #f5eae4;
+  --color-terra-soft-border: #e3cdbf;
+  --color-terra-on-soft: #8a4426;
+
+  /* Ámbar — vencido y advertencia */
+  --color-warn: #8a6410;
+  --color-warn-soft: #faf0d9;
+  --color-warn-banner: #fcf7e9;
+  --color-warn-soft-border: #e8d9ae;
+  --color-warn-on-soft: #7a5810;
+  --color-warn-strong: #5f4409;
+
+  /* Gráficos — un paso más vivo que verde/neg: los tonos de UI no pasan el
+     piso de croma para marcas de datos (validado con el script de dataviz:
+     lightness, croma, contraste y separación bajo daltonismo sobre paper). */
+  --color-chart-ingreso: #23805c;
+  --color-chart-egreso: #b4492c;
+
+  /* Tipografía */
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), Georgia, serif;
+
+  /* Radios */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Sombras */
+  --shadow-pop: 0 10px 30px rgba(35, 32, 28, 0.08);
+  --shadow-card: 0 12px 40px rgba(35, 32, 28, 0.07);
+
+  /* Breakpoint propio del shell: por debajo, tab bar inferior; desde acá,
+     nav horizontal + header completo. Ver README del handoff, "Tablet
+     (≤834px)". Los demás breakpoints (md/lg/xl) usan la escala default de
+     Tailwind, que ya coincide con los rangos 768/1024/1280 del handoff. */
+  --breakpoint-nav: 835px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  a {
+    color: var(--color-verde);
+    font-weight: 500;
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--color-verde-hover);
+    text-decoration: underline;
+  }
+  :focus-visible {
+    outline: none;
+    border-color: var(--color-verde);
+    box-shadow: 0 0 0 4px rgb(31 93 76 / 0.1);
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
 }

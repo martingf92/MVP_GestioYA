@@ -12,7 +12,21 @@ import { CreateClienteDto } from './dto/create-cliente.dto';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { CreateAcreedorDto } from './dto/create-acreedor.dto';
 
-const INCLUDE_SUBTIPOS = { cliente: true, proveedor: true, acreedor: true } as const;
+const INCLUDE_SUBTIPOS = {
+  cliente: true,
+  proveedor: true,
+  acreedor: true,
+  // Para el listado con saldo (pantalla de Entidades): saldo actual +
+  // fecha del último movimiento, en la misma consulta (sin N+1). Se
+  // computa el saldo real, no se confía en un campo aparte que se pudiera
+  // desincronizar -- mismo criterio que ya usa el módulo de Cuentas.
+  cuentaCorriente: {
+    select: {
+      saldoActual: true,
+      movimientos: { orderBy: { fecha: 'desc' as const }, take: 1, select: { fecha: true } },
+    },
+  },
+} as const;
 
 function isUniqueViolation(error: unknown): boolean {
   return (
@@ -80,16 +94,37 @@ export class EntidadesService {
       acreedor: query.tipo === 'acreedor' ? { isNot: null } : undefined,
     };
 
-    const [data, total] = await Promise.all([
-      this.prisma.db.entidad.findMany({
-        where,
-        include: INCLUDE_SUBTIPOS,
-        orderBy: { nombre: 'asc' },
-        skip: query.skip,
-        take: query.take,
-      }),
-      this.prisma.db.entidad.count({ where }),
-    ]);
+    const total = await this.prisma.db.entidad.count({ where });
+
+    if (query.orderBy === 'saldo') {
+      // Ordenar por saldo a nivel de Postgres a través de la relación
+      // dejaría las entidades sin CuentaCorriente todavía (saldo NULL)
+      // primero en orden descendente (comportamiento default de Postgres:
+      // NULLS FIRST en DESC) -- no tiene sentido para el usuario, una
+      // entidad sin movimientos tiene saldo 0, no "más" que las demás. Se
+      // ordena en memoria tratando null como 0. A la escala de una PyME
+      // (cientos de entidades, no millones) esto es más simple y correcto
+      // que pelear con NULLS FIRST/LAST de Postgres a través de una
+      // relación -- si el volumen creciera mucho, ahí sí valdría la pena
+      // resolverlo con SQL crudo.
+      const todas = await this.prisma.db.entidad.findMany({ where, include: INCLUDE_SUBTIPOS });
+      const signo = query.orderDir === 'asc' ? 1 : -1;
+      todas.sort((a, b) => {
+        const saldoA = a.cuentaCorriente?.saldoActual.toNumber() ?? 0;
+        const saldoB = b.cuentaCorriente?.saldoActual.toNumber() ?? 0;
+        return signo * (saldoA - saldoB);
+      });
+      const data = todas.slice(query.skip, (query.skip ?? 0) + (query.take ?? todas.length));
+      return { data, total, skip: query.skip, take: query.take };
+    }
+
+    const data = await this.prisma.db.entidad.findMany({
+      where,
+      include: INCLUDE_SUBTIPOS,
+      orderBy: { nombre: query.orderDir === 'desc' ? 'desc' : 'asc' },
+      skip: query.skip,
+      take: query.take,
+    });
 
     return { data, total, skip: query.skip, take: query.take };
   }

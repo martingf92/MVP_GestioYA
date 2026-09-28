@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F2EDE4; color:#23201C; -webkit-font-smoothing:antialiased; }
+  a { color:#1F5D4C; text-decoration:none; font-weight:500; }
+  a:hover { color:#164236; text-decoration:underline; }
+</style>
+</helmet>
+
+<div style="font-family:'Public Sans',ui-sans-serif,sans-serif;padding:56px;display:flex;flex-direction:column;gap:56px;align-items:flex-start">
+
+  <!-- PORTADA -->
+  <div style="max-width:960px;display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#8A7F70">Opción B</span>
+      <span style="width:28px;height:1px;background:#CFC3B1"></span>
+      <span style="font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#1F5D4C">GestioYA</span>
+    </div>
+    <h1 style="margin:0;font-family:'Source Serif 4',Georgia,serif;font-size:60px;line-height:1.02;font-weight:600;letter-spacing:-.02em">Mostrador</h1>
+    <p style="margin:0;font-size:19px;line-height:1.6;color:#4E4740;max-width:780px;text-wrap:pretty">Cálido, espacioso, con lenguaje de persona. Papel en vez de blanco clínico, verde contable como acento, serif para las cifras que importan. Pensada para el dueño del comercio en el iPad del mostrador: targets grandes, menos columnas, más frases claras.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+      <span style="font-size:12.5px;font-weight:500;padding:7px 12px;border:1px solid #DCD1BF;border-radius:999px;color:#4E4740;background:#FBF8F3">espaciosa</span>
+      <span style="font-size:12.5px;font-weight:500;padding:7px 12px;border:1px solid #DCD1BF;border-radius:999px;color:#4E4740;background:#FBF8F3">nav superior + módulos</span>
+      <span style="font-size:12.5px;font-weight:500;padding:7px 12px;border:1px solid #DCD1BF;border-radius:999px;color:#4E4740;background:#FBF8F3">verde + terracota</span>
+      <span style="font-size:12.5px;font-weight:500;padding:7px 12px;border:1px solid #DCD1BF;border-radius:999px;color:#4E4740;background:#FBF8F3">radios 12px</span>
+    </div>
+  </div>
+
+  <!-- SISTEMA -->
+  <div style="width:1360px;background:#FBF8F3;border:1px solid #E5DACA;border-radius:16px;padding:36px;display:flex;flex-direction:column;gap:34px">
+    <div style="display:flex;align-items:baseline;gap:12px;border-bottom:1px solid #EBE2D5;padding-bottom:16px">
+      <h2 style="margin:0;font-family:'Source Serif 4',serif;font-size:26px;font-weight:600">Sistema de diseño</h2>
+      <span style="font-size:12.5px;color:#8A7F70">tokens / Tailwind v4 @theme</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <h3 style="margin:0;font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#8A7F70">Paleta</h3>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px">
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#23201C"></div><div style="font-size:12.5px;font-weight:600">ink</div><div style="font-size:11.5px;color:#8A7F70">#23201C</div></div>
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#4E4740"></div><div style="font-size:12.5px;font-weight:600">ink-soft</div><div style="font-size:11.5px;color:#8A7F70">#4E4740</div></div>
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#8A7F70"></div><div style="font-size:12.5px;font-weight:600">muted</div><div style="font-size:11.5px;color:#8A7F70">#8A7F70</div></div>
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#E5DACA"></div><div style="font-size:12.5px;font-weight:600">line</div><div style="font-size:11.5px;color:#8A7F70">#E5DACA</div></div>
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#F2EDE4"></div><div style="font-size:12.5px;font-weight:600">canvas</div><div style="font-size:11.5px;color:#8A7F70">#F2EDE4</div></div>
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#FBF8F3;border:1px solid #E5DACA"></div><div style="font-size:12.5px;font-weight:600">paper</div><div style="font-size:11.5px;color:#8A7F70">#FBF8F3</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px">
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#1F5D4C"></div><div style="font-size:12.5px;font-weight:600">verde (acción / a favor)</div><div style="font-size:11.5px;color:#8A7F70">#1F5D4C</div></div>
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#E7F0EA;border:1px solid #C6DCD0"></div><div style="font-size:12.5px;font-weight:600">verde-suave</div><div style="font-size:11.5px;color:#8A7F70">#E7F0EA</div></div>
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#9C3520"></div><div style="font-size:12.5px;font-weight:600">rojo tierra (en contra)</div><div style="font-size:11.5px;color:#8A7F70">#9C3520</div></div>
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#B45B33"></div><div style="font-size:12.5px;font-weight:600">terracota (2° acento)</div><div style="font-size:11.5px;color:#8A7F70">#B45B33</div></div>
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#8A6410"></div><div style="font-size:12.5px;font-weight:600">ámbar (vencido)</div><div style="font-size:11.5px;color:#8A7F70">#8A6410</div></div>
+        <div style="display:flex;flex-direction:column;gap:7px"><div style="height:60px;border-radius:10px;background:#FAF0D9;border:1px solid #E8D9AE"></div><div style="font-size:12.5px;font-weight:600">ámbar-suave</div><div style="font-size:11.5px;color:#8A7F70">#FAF0D9</div></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:36px;border-top:1px solid #EBE2D5;padding-top:28px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <h3 style="margin:0;font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#8A7F70">Tipografía — Source Serif 4 (títulos y cifras) + Public Sans (UI)</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:11.5px;color:#8A7F70;width:110px">serif 44/600</span><span style="font-family:'Source Serif 4',serif;font-size:44px;font-weight:600;letter-spacing:-.02em">Cuenta corriente</span></div>
+          <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:11.5px;color:#8A7F70;width:110px">serif 26/600</span><span style="font-family:'Source Serif 4',serif;font-size:26px;font-weight:600">Remitos emitidos</span></div>
+          <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:11.5px;color:#8A7F70;width:110px">sans 17/600</span><span style="font-size:17px;font-weight:600">Distribuidora del Norte SRL</span></div>
+          <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:11.5px;color:#8A7F70;width:110px">sans 15/400</span><span style="font-size:15px;line-height:1.55">Cuerpo y tablas, interlineado 1.55 — respirado</span></div>
+          <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:11.5px;color:#8A7F70;width:110px">sans 12/700 caps</span><span style="font-size:12px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#8A7F70">Etiquetas</span></div>
+          <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:11.5px;color:#8A7F70;width:110px">cifras serif</span><span style="font-family:'Source Serif 4',serif;font-size:26px;font-weight:600;font-variant-numeric:tabular-nums">$ 1.284.930,50</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h3 style="margin:0;font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#8A7F70">Espaciado — base 8</h3>
+          <div style="display:flex;align-items:flex-end;gap:9px">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:8px;height:8px;background:#1F5D4C;border-radius:2px"></div><span style="font-size:10.5px;color:#8A7F70">8</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:16px;height:16px;background:#1F5D4C;border-radius:2px"></div><span style="font-size:10.5px;color:#8A7F70">16</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:24px;height:24px;background:#1F5D4C;border-radius:3px"></div><span style="font-size:10.5px;color:#8A7F70">24</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:32px;height:32px;background:#1F5D4C;border-radius:4px"></div><span style="font-size:10.5px;color:#8A7F70">32</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:48px;height:48px;background:#1F5D4C;border-radius:6px"></div><span style="font-size:10.5px;color:#8A7F70">48</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:64px;height:64px;background:#1F5D4C;border-radius:8px"></div><span style="font-size:10.5px;color:#8A7F70">64</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h3 style="margin:0;font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#8A7F70">Radios — 8 / 12 / 16 / pill</h3>
+          <div style="display:flex;gap:10px">
+            <div style="width:60px;height:48px;border:1px solid #E5DACA;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11.5px;color:#8A7F70">8</div>
+            <div style="width:60px;height:48px;border:1px solid #E5DACA;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11.5px;color:#8A7F70">12</div>
+            <div style="width:60px;height:48px;border:1px solid #E5DACA;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11.5px;color:#8A7F70">16</div>
+            <div style="width:60px;height:48px;border:1px solid #E5DACA;border-radius:999px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11.5px;color:#8A7F70">pill</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;border-top:1px solid #EBE2D5;padding-top:28px">
+      <h3 style="margin:0;font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#8A7F70">Componentes clave — altura mínima 44px</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:12px;color:#8A7F70">Botones</span>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button style="font-family:inherit;font-size:15px;font-weight:600;color:#fff;background:#1F5D4C;border:none;border-radius:10px;padding:12px 20px;cursor:pointer" style-hover="background:#164236">Emitir remito</button>
+            <button style="font-family:inherit;font-size:15px;font-weight:600;color:#23201C;background:#fff;border:1px solid #DCD1BF;border-radius:10px;padding:12px 20px;cursor:pointer" style-hover="background:#F7F2E9">Guardar borrador</button>
+            <button style="font-family:inherit;font-size:15px;font-weight:600;color:#9C3520;background:#FDF2EE;border:1px solid #EAC9BE;border-radius:10px;padding:12px 20px;cursor:pointer">Anular</button>
+            <button style="font-family:inherit;font-size:15px;font-weight:600;color:#B0A695;background:#F2EDE4;border:1px solid #E5DACA;border-radius:10px;padding:12px 20px">Deshabilitado</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:12px;color:#8A7F70">Campos</span>
+          <div style="display:flex;gap:12px">
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:#4E4740">Razón social</span><div style="width:240px;border:1.5px solid #1F5D4C;border-radius:10px;padding:12px 14px;font-size:15px;background:#fff;box-shadow:0 0 0 4px rgba(31,93,76,.10)">Distribuidora del Norte</div></div>
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;font-weight:600;color:#4E4740">CUIT</span><div style="width:170px;border:1.5px solid #C98B78;border-radius:10px;padding:12px 14px;font-size:15px;background:#fff;color:#9C3520">30-1234-9</div><span style="font-size:12px;color:#9C3520">⚠ Faltan dígitos</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:12px;color:#8A7F70">Badges de estado</span>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;max-width:360px">
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:#F2EDE4;border:1px solid #DCD1BF;color:#4E4740">✎ Borrador</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:#E7F0EA;border:1px solid #C6DCD0;color:#155744">✓ Emitido</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:#F2EDE4;border:1px solid #DCD1BF;color:#8A7F70">⊘ Anulado</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:#FAF0D9;border:1px solid #E8D9AE;color:#7A5810">⏱ Vencida</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:#FDF2EE;border:1px solid #EAC9BE;color:#9C3520">◐ Parcial</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:12px;color:#8A7F70">Banner de alerta</span>
+          <div style="width:430px;display:flex;gap:12px;align-items:flex-start;border:1px solid #E8D9AE;background:#FCF7E9;border-radius:12px;padding:14px 16px">
+            <span style="font-size:16px;color:#8A6410;line-height:1.2">⏱</span>
+            <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:14.5px;font-weight:600;color:#5F4409">Hay 3 recordatorios esperándote</span><span style="font-size:13px;color:#7A5810;line-height:1.5">El más viejo es de hace 6 días. <a href="#" style="color:#5F4409">Verlos ahora</a></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. LOGIN -->
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:12.5px;font-weight:700;color:#1F5D4C">01</span><span style="font-size:15px;font-weight:600">Login</span><span style="font-size:13.5px;color:#8A7F70">— tarjeta sobre papel, un solo foco, tono de voz humano</span></div>
+    <div style="width:1360px;height:760px;background:#F2EDE4;border:1px solid #E5DACA;border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative">
+      <div style="position:absolute;top:28px;left:32px;display:flex;align-items:center;gap:10px">
+        <div style="width:28px;height:28px;border-radius:8px;background:#1F5D4C;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',serif;font-size:16px;font-weight:600">G</div>
+        <span style="font-family:'Source Serif 4',serif;font-size:19px;font-weight:600">GestioYA</span>
+      </div>
+      <div style="width:1000px;display:flex;gap:0;background:#FBF8F3;border:1px solid #E5DACA;border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(35,32,28,.07)">
+        <div style="flex:1;padding:52px 48px;display:flex;flex-direction:column;gap:24px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <h2 style="margin:0;font-family:'Source Serif 4',serif;font-size:34px;font-weight:600;letter-spacing:-.01em">Hola de nuevo</h2>
+            <p style="margin:0;font-size:15px;color:#6D655B;line-height:1.55">Entrá para ver cómo viene el mes.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:7px"><span style="font-size:13px;font-weight:600;color:#4E4740">Email</span><div style="border:1px solid #DCD1BF;border-radius:10px;padding:13px 15px;font-size:15px;background:#fff">martin@distribuidoranorte.com.ar</div></div>
+            <div style="display:flex;flex-direction:column;gap:7px"><span style="font-size:13px;font-weight:600;color:#4E4740">Contraseña</span><div style="border:1px solid #DCD1BF;border-radius:10px;padding:13px 15px;font-size:15px;background:#fff;letter-spacing:.2em;color:#4E4740">••••••••••</div></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:9px;font-size:14px;color:#4E4740"><span style="width:18px;height:18px;border-radius:5px;background:#1F5D4C;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center">✓</span> No cerrar sesión</span><a href="#" style="font-size:14px">Recuperar acceso</a></div>
+            <button style="font-family:inherit;font-size:16px;font-weight:600;color:#fff;background:#1F5D4C;border:none;border-radius:10px;padding:14px;cursor:pointer" style-hover="background:#164236">Entrar</button>
+            <div style="display:flex;gap:10px;align-items:flex-start;border:1px solid #EAC9BE;background:#FDF2EE;border-radius:10px;padding:12px 14px"><span style="color:#9C3520;font-size:14px">⚠</span><span style="font-size:13px;color:#8A2E1B;line-height:1.5">No coincide el email con la contraseña. Probá de nuevo — te quedan 4 intentos antes de bloquear la cuenta por 15 minutos.</span></div>
+          </div>
+          <p style="margin:0;font-size:14px;color:#6D655B">¿Tu empresa todavía no está? <a href="#">Crear cuenta</a></p>
+        </div>
+        <div style="width:400px;flex:none;background:#1F5D4C;color:#fff;padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between">
+          <span style="font-family:'Source Serif 4',serif;font-size:23px;font-weight:600;line-height:1.35">Todo lo que te deben y todo lo que debés, en una sola pantalla.</span>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="background:rgba(255,255,255,.10);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#A9C9BD">Te deben</span>
+              <span style="font-family:'Source Serif 4',serif;font-size:30px;font-weight:600;font-variant-numeric:tabular-nums">$ 6.240.180</span>
+            </div>
+            <div style="background:rgba(255,255,255,.10);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#A9C9BD">Debés</span>
+              <span style="font-family:'Source Serif 4',serif;font-size:30px;font-weight:600;font-variant-numeric:tabular-nums">$ 1.427.540</span>
+            </div>
+            <span style="font-size:13px;color:#A9C9BD;line-height:1.5">Datos de ejemplo. Cada empresa ve únicamente su propia información.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. DASHBOARD -->
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:12.5px;font-weight:700;color:#1F5D4C">02</span><span style="font-size:15px;font-weight:600">Inicio</span><span style="font-size:13.5px;color:#8A7F70">— arranca con una frase en castellano, no con un KPI. Después el detalle</span></div>
+    <div style="width:1360px;height:900px;background:#F2EDE4;border:1px solid #E5DACA;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+      <header style="flex:none;background:#FBF8F3;border-bottom:1px solid #E5DACA;padding:0 28px;display:flex;flex-direction:column">
+        <div style="height:64px;display:flex;align-items:center;gap:16px">
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:26px;height:26px;border-radius:8px;background:#1F5D4C;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',serif;font-size:15px;font-weight:600">G</div><span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600">GestioYA</span></div>
+          <div style="display:flex;align-items:center;gap:9px;border:1px solid #DCD1BF;border-radius:999px;padding:7px 14px;background:#fff;cursor:pointer" style-hover="border-color:#C4B69F">
+            <span style="width:20px;height:20px;border-radius:6px;background:#B45B33;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">DN</span>
+            <span style="font-size:13.5px;font-weight:600">Distribuidora Norte</span><span style="font-size:10px;color:#8A7F70">▾</span>
+          </div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;gap:9px;border:1px solid #DCD1BF;border-radius:999px;padding:9px 16px;background:#fff;width:230px;color:#8A7F70;font-size:14px">Buscar entidad, remito…</div>
+            <span style="width:38px;height:38px;border-radius:999px;background:#fff;border:1px solid #DCD1BF;display:flex;align-items:center;justify-content:center;font-size:14px;color:#4E4740;position:relative">☰<span style="position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:999px;background:#9C3520;border:2px solid #FBF8F3"></span></span>
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:36px;height:36px;border-radius:999px;background:#E7F0EA;color:#1F5D4C;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">MG</span><span style="font-size:14px;font-weight:500">Martín</span></div>
+          </div>
+        </div>
+        <nav style="display:flex;gap:4px">
+          <span style="font-size:14.5px;font-weight:600;padding:12px 16px;border-bottom:2.5px solid #1F5D4C;color:#1F5D4C">Inicio</span>
+          <span style="font-size:14.5px;font-weight:500;padding:12px 16px;color:#4E4740;border-bottom:2.5px solid transparent" style-hover="color:#23201C">Entidades</span>
+          <span style="font-size:14.5px;font-weight:500;padding:12px 16px;color:#4E4740;border-bottom:2.5px solid transparent">Productos</span>
+          <span style="font-size:14.5px;font-weight:500;padding:12px 16px;color:#4E4740;border-bottom:2.5px solid transparent">Remitos</span>
+          <span style="font-size:14.5px;font-weight:500;padding:12px 16px;color:#4E4740;border-bottom:2.5px solid transparent">Cuentas</span>
+          <span style="font-size:14.5px;font-weight:500;padding:12px 16px;color:#4E4740;border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:7px">Tareas <span style="font-size:11px;font-weight:700;background:#9C3520;color:#fff;border-radius:999px;padding:1px 7px">3</span></span>
+        </nav>
+      </header>
+
+      <main style="flex:1;padding:28px;display:flex;flex-direction:column;gap:20px;overflow:hidden">
+        <div style="display:flex;align-items:flex-end;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <h1 style="margin:0;font-family:'Source Serif 4',serif;font-size:32px;font-weight:600;letter-spacing:-.01em">Buen día, Martín</h1>
+            <p style="margin:0;font-size:15.5px;color:#4E4740">Hoy te deben <strong style="color:#1F5D4C">$ 4.812.640</strong> más de lo que debés. Hay <strong style="color:#8A6410">$ 812.400 vencidos</strong> para reclamar.</p>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:10px">
+            <button style="font-family:inherit;font-size:14.5px;font-weight:600;color:#23201C;background:#fff;border:1px solid #DCD1BF;border-radius:10px;padding:11px 18px;cursor:pointer">Nueva entidad</button>
+            <button style="font-family:inherit;font-size:14.5px;font-weight:600;color:#fff;background:#1F5D4C;border:none;border-radius:10px;padding:11px 18px;cursor:pointer">Nuevo remito</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:center;border:1px solid #E8D9AE;background:#FCF7E9;border-radius:12px;padding:14px 18px">
+          <span style="font-size:17px;color:#8A6410">⏱</span>
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14.5px;font-weight:600;color:#5F4409">3 recordatorios vencidos y 2 obligaciones que vencen hoy</span><span style="font-size:13px;color:#7A5810">Conciliar cheque 0043-889 · Llamar a Ferretería Iglesias</span></div>
+          <div style="margin-left:auto;display:flex;gap:10px;align-items:center"><button style="font-family:inherit;font-size:13.5px;font-weight:600;color:#5F4409;background:#fff;border:1px solid #E8D9AE;border-radius:8px;padding:9px 14px;cursor:pointer">Ver tareas</button><span style="font-size:14px;color:#B29A5E;cursor:pointer;padding:4px">✕</span></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+          <div style="background:#FBF8F3;border:1px solid #E5DACA;border-left:4px solid #1F5D4C;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:7px">
+            <span style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8A7F70">Te deben</span>
+            <span style="font-family:'Source Serif 4',serif;font-size:34px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums;letter-spacing:-.01em">$ 6.240.180</span>
+            <span style="font-size:13.5px;color:#4E4740">42 obligaciones abiertas · <span style="color:#8A6410;font-weight:600">$ 812.400 vencidos</span></span>
+          </div>
+          <div style="background:#FBF8F3;border:1px solid #E5DACA;border-left:4px solid #9C3520;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:7px">
+            <span style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8A7F70">Debés</span>
+            <span style="font-family:'Source Serif 4',serif;font-size:34px;font-weight:600;color:#9C3520;font-variant-numeric:tabular-nums;letter-spacing:-.01em">$ 1.427.540</span>
+            <span style="font-size:13.5px;color:#4E4740">17 obligaciones · 3 vencen esta semana</span>
+          </div>
+          <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:7px">
+            <span style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8A7F70">Movimiento del mes</span>
+            <span style="font-family:'Source Serif 4',serif;font-size:34px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em">128 remitos</span>
+            <span style="font-size:13.5px;color:#4E4740">124 emitidos · <a href="#">4 en borrador sin emitir</a></span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px;flex:1;min-height:0">
+          <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+            <div style="padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #EBE2D5">
+              <span style="font-family:'Source Serif 4',serif;font-size:19px;font-weight:600">Para reclamar primero</span>
+              <a href="#" style="margin-left:auto;font-size:13.5px">Ver todas las obligaciones</a>
+            </div>
+            <div style="display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid #F0E9DE">
+                <div style="width:40px;height:40px;border-radius:999px;background:#FAF0D9;color:#7A5810;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none">FI</div>
+                <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;font-weight:600">Ferretería Iglesias</span><span style="font-size:13px;color:#8A6410">Venció hace 7 días · remito R-0001288</span></div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:14px"><span style="font-family:'Source Serif 4',serif;font-size:20px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">$ 312.400</span><button style="font-family:inherit;font-size:13px;font-weight:600;color:#23201C;background:#fff;border:1px solid #DCD1BF;border-radius:8px;padding:8px 12px;cursor:pointer">Cobrar</button></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid #F0E9DE">
+                <div style="width:40px;height:40px;border-radius:999px;background:#FAF0D9;color:#7A5810;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none">CS</div>
+                <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;font-weight:600">Corralón San Justo SA</span><span style="font-size:13px;color:#8A6410">Venció hace 4 días</span></div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:14px"><span style="font-family:'Source Serif 4',serif;font-size:20px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">$ 500.000</span><button style="font-family:inherit;font-size:13px;font-weight:600;color:#23201C;background:#fff;border:1px solid #DCD1BF;border-radius:8px;padding:8px 12px;cursor:pointer">Cobrar</button></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid #F0E9DE">
+                <div style="width:40px;height:40px;border-radius:999px;background:#E7F0EA;color:#1F5D4C;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none">KC</div>
+                <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;font-weight:600">Kiosco Central</span><span style="font-size:13px;color:#4E4740">Vence hoy · pago parcial recibido</span></div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:14px"><span style="font-family:'Source Serif 4',serif;font-size:20px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">$ 84.900</span><button style="font-family:inherit;font-size:13px;font-weight:600;color:#23201C;background:#fff;border:1px solid #DCD1BF;border-radius:8px;padding:8px 12px;cursor:pointer">Cobrar</button></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;padding:16px 20px">
+                <div style="width:40px;height:40px;border-radius:999px;background:#F2EDE4;color:#8A7F70;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none">ST</div>
+                <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;font-weight:600">Supermercado Tandil</span><span style="font-size:13px;color:#4E4740">Vence el 2 de septiembre</span></div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:14px"><span style="font-family:'Source Serif 4',serif;font-size:20px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">$ 1.204.000</span><button style="font-family:inherit;font-size:13px;font-weight:600;color:#8A7F70;background:#F7F2E9;border:1px solid #E5DACA;border-radius:8px;padding:8px 12px">Cobrar</button></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px;min-height:0">
+            <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px">
+              <span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600">Accesos rápidos</span>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div style="border:1px solid #E5DACA;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:5px;background:#fff;cursor:pointer" style-hover="border-color:#1F5D4C"><span style="font-size:15px">📄</span><span style="font-size:13.5px;font-weight:600">Cargar remito</span></div>
+                <div style="border:1px solid #E5DACA;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:5px;background:#fff;cursor:pointer" style-hover="border-color:#1F5D4C"><span style="font-size:15px">💵</span><span style="font-size:13.5px;font-weight:600">Registrar pago</span></div>
+                <div style="border:1px solid #E5DACA;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:5px;background:#fff;cursor:pointer" style-hover="border-color:#1F5D4C"><span style="font-size:15px">👤</span><span style="font-size:13.5px;font-weight:600">Nuevo cliente</span></div>
+                <div style="border:1px solid #E5DACA;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:5px;background:#fff;cursor:pointer" style-hover="border-color:#1F5D4C"><span style="font-size:15px">📋</span><span style="font-size:13.5px;font-weight:600">Nueva tarea</span></div>
+              </div>
+            </div>
+            <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden">
+              <div style="padding:16px 18px;border-bottom:1px solid #EBE2D5;display:flex;align-items:center"><span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600">Tus tareas</span><a href="#" style="margin-left:auto;font-size:13.5px">+ Nueva</a></div>
+              <div style="display:flex;flex-direction:column;padding:6px 0">
+                <div style="display:flex;gap:12px;padding:12px 18px;align-items:flex-start"><span style="width:20px;height:20px;border:1.5px solid #C4B69F;border-radius:6px;flex:none;margin-top:1px"></span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:500">Conciliar cheque 0043-889</span><span style="font-size:12.5px;color:#9C3520;font-weight:500">Venció hace 6 días · prioridad alta</span></div></div>
+                <div style="display:flex;gap:12px;padding:12px 18px;align-items:flex-start"><span style="width:20px;height:20px;border:1.5px solid #C4B69F;border-radius:6px;flex:none;margin-top:1px"></span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:500">Llamar a Ferretería Iglesias</span><span style="font-size:12.5px;color:#9C3520;font-weight:500">Venció hace 2 días</span></div></div>
+                <div style="display:flex;gap:12px;padding:12px 18px;align-items:flex-start"><span style="width:20px;height:20px;border:1.5px solid #C4B69F;border-radius:6px;flex:none;margin-top:1px"></span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:500">Revisar lista de precios de septiembre</span><span style="font-size:12.5px;color:#8A7F70">Vence el 30/08 · en proceso</span></div></div>
+                <div style="display:flex;gap:12px;padding:12px 18px;align-items:flex-start;opacity:.5"><span style="width:20px;height:20px;background:#1F5D4C;border-radius:6px;flex:none;margin-top:1px;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center">✓</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:500;text-decoration:line-through">Cargar remitos del viernes</span><span style="font-size:12.5px;color:#8A7F70">Cumplida ayer</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 3. LISTADO -->
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:12.5px;font-weight:700;color:#1F5D4C">03</span><span style="font-size:15px;font-weight:600">Entidades — listado</span><span style="font-size:13.5px;color:#8A7F70">— la misma densidad de datos en filas de 64px: jerarquía en vez de compresión</span></div>
+    <div style="width:1360px;height:840px;background:#F2EDE4;border:1px solid #E5DACA;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+      <header style="flex:none;background:#FBF8F3;border-bottom:1px solid #E5DACA;padding:0 28px;display:flex;flex-direction:column">
+        <div style="height:64px;display:flex;align-items:center;gap:16px">
+          <div style="display:flex;align-items:center;gap:10px"><div style="width:26px;height:26px;border-radius:8px;background:#1F5D4C;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',serif;font-size:15px;font-weight:600">G</div><span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600">GestioYA</span></div>
+          <div style="display:flex;align-items:center;gap:9px;border:1px solid #DCD1BF;border-radius:999px;padding:7px 14px;background:#fff"><span style="width:20px;height:20px;border-radius:6px;background:#B45B33;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">DN</span><span style="font-size:13.5px;font-weight:600">Distribuidora Norte</span><span style="font-size:10px;color:#8A7F70">▾</span></div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:12px"><span style="width:36px;height:36px;border-radius:999px;background:#E7F0EA;color:#1F5D4C;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">MG</span></div>
+        </div>
+        <nav style="display:flex;gap:4px">
+          <span style="font-size:14.5px;font-weight:500;padding:12px 16px;color:#4E4740;border-bottom:2.5px solid transparent">Inicio</span>
+          <span style="font-size:14.5px;font-weight:600;padding:12px 16px;border-bottom:2.5px solid #1F5D4C;color:#1F5D4C">Entidades</span>
+          <span style="font-size:14.5px;font-weight:500;padding:12px 16px;color:#4E4740;border-bottom:2.5px solid transparent">Productos</span>
+          <span style="font-size:14.5px;font-weight:500;padding:12px 16px;color:#4E4740;border-bottom:2.5px solid transparent">Remitos</span>
+          <span style="font-size:14.5px;font-weight:500;padding:12px 16px;color:#4E4740;border-bottom:2.5px solid transparent">Cuentas</span>
+          <span style="font-size:14.5px;font-weight:500;padding:12px 16px;color:#4E4740;border-bottom:2.5px solid transparent">Tareas</span>
+        </nav>
+      </header>
+
+      <div style="padding:24px 28px 16px;display:flex;align-items:flex-end;gap:16px;flex:none">
+        <div style="display:flex;flex-direction:column;gap:4px"><h1 style="margin:0;font-family:'Source Serif 4',serif;font-size:28px;font-weight:600">Entidades</h1><span style="font-size:14px;color:#6D655B">148 activas · 6 dadas de baja</span></div>
+        <div style="margin-left:auto;display:flex;gap:10px"><button style="font-family:inherit;font-size:14.5px;font-weight:600;color:#23201C;background:#fff;border:1px solid #DCD1BF;border-radius:10px;padding:11px 18px;cursor:pointer">Exportar</button><button style="font-family:inherit;font-size:14.5px;font-weight:600;color:#fff;background:#1F5D4C;border:none;border-radius:10px;padding:11px 18px;cursor:pointer">Nueva entidad</button></div>
+      </div>
+
+      <div style="padding:0 28px 16px;display:flex;gap:10px;align-items:center;flex:none;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px;border:1px solid #DCD1BF;border-radius:999px;padding:11px 16px;width:260px;background:#fff"><span style="color:#8A7F70;font-size:13px">⌕</span><span style="font-size:14px">iglesias</span><span style="margin-left:auto;font-size:13px;color:#8A7F70;cursor:pointer">✕</span></div>
+        <span style="font-size:13.5px;font-weight:600;padding:10px 16px;border-radius:999px;background:#23201C;color:#fff">Todas 148</span>
+        <span style="font-size:13.5px;font-weight:500;padding:10px 16px;border-radius:999px;background:#fff;border:1px solid #DCD1BF;color:#4E4740">Clientes 96</span>
+        <span style="font-size:13.5px;font-weight:500;padding:10px 16px;border-radius:999px;background:#fff;border:1px solid #DCD1BF;color:#4E4740">Proveedores 41</span>
+        <span style="font-size:13.5px;font-weight:500;padding:10px 16px;border-radius:999px;background:#fff;border:1px solid #DCD1BF;color:#4E4740">Acreedores 11</span>
+        <span style="margin-left:auto;font-size:13.5px;color:#6D655B">Ordenado por <strong>saldo</strong> ↓</span>
+      </div>
+
+      <div style="flex:1;overflow:hidden;padding:0 28px 24px;display:flex;flex-direction:column">
+        <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;flex:1">
+          <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1.3fr 1.2fr 52px;gap:16px;padding:12px 20px;border-bottom:1px solid #E5DACA;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8A7F70">
+            <span>Entidad</span><span>Roles</span><span style="text-align:right">Saldo</span><span style="text-align:right">Último movimiento</span><span></span>
+          </div>
+          <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1.3fr 1.2fr 52px;gap:16px;padding:{{ rowPad }};border-bottom:1px solid #F0E9DE;align-items:center" style-hover="background:#FDFBF7">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0"><span style="width:36px;height:36px;border-radius:999px;background:#E7F0EA;color:#1F5D4C;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">FI</span><div style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:15px;font-weight:600">Ferretería Iglesias</span><span style="font-size:12.5px;color:#8A7F70">30-71234567-9 · Rosario</span></div></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#E7F0EA;border:1px solid #C6DCD0;color:#155744">Cliente</span><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#F5EAE4;border:1px solid #E3CDBF;color:#8A4426">Proveedor</span></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px"><span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">+ $ 312.400</span><span style="font-size:12px;color:#8A7F70">te deben</span></div>
+            <span style="font-size:13.5px;color:#4E4740;text-align:right">hace 7 días</span>
+            <span style="text-align:center;color:#8A7F70;font-size:15px">›</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1.3fr 1.2fr 52px;gap:16px;padding:{{ rowPad }};border-bottom:1px solid #F0E9DE;align-items:center" style-hover="background:#FDFBF7">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0"><span style="width:36px;height:36px;border-radius:999px;background:#E7F0EA;color:#1F5D4C;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">CS</span><div style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:15px;font-weight:600">Corralón San Justo SA</span><span style="font-size:12.5px;color:#8A7F70">33-69874521-4 · CABA</span></div></div>
+            <div style="display:flex;gap:6px"><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#E7F0EA;border:1px solid #C6DCD0;color:#155744">Cliente</span></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px"><span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">+ $ 500.000</span><span style="font-size:12px;color:#8A7F70">te deben</span></div>
+            <span style="font-size:13.5px;color:#4E4740;text-align:right">hace 4 días</span>
+            <span style="text-align:center;color:#8A7F70;font-size:15px">›</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1.3fr 1.2fr 52px;gap:16px;padding:{{ rowPad }};border-bottom:1px solid #F0E9DE;align-items:center" style-hover="background:#FDFBF7">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0"><span style="width:36px;height:36px;border-radius:999px;background:#F5EAE4;color:#8A4426;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">PA</span><div style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:15px;font-weight:600">Papelera Andina SRL</span><span style="font-size:12.5px;color:#8A7F70">30-70998812-1 · Córdoba</span></div></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#F5EAE4;border:1px solid #E3CDBF;color:#8A4426">Proveedor</span><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#FAF0D9;border:1px solid #E8D9AE;color:#7A5810">Acreedor</span></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px"><span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;color:#9C3520;font-variant-numeric:tabular-nums">− $ 842.150</span><span style="font-size:12px;color:#8A7F70">le debés</span></div>
+            <span style="font-size:13.5px;color:#4E4740;text-align:right">hace 3 días</span>
+            <span style="text-align:center;color:#8A7F70;font-size:15px">›</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1.3fr 1.2fr 52px;gap:16px;padding:{{ rowPad }};border-bottom:1px solid #F0E9DE;align-items:center" style-hover="background:#FDFBF7">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0"><span style="width:36px;height:36px;border-radius:999px;background:#E7F0EA;color:#1F5D4C;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">ST</span><div style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:15px;font-weight:600">Supermercado Tandil</span><span style="font-size:12.5px;color:#8A7F70">30-58741296-3 · Tandil</span></div></div>
+            <div style="display:flex;gap:6px"><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#E7F0EA;border:1px solid #C6DCD0;color:#155744">Cliente</span></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px"><span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">+ $ 1.204.000</span><span style="font-size:12px;color:#8A7F70">te deben</span></div>
+            <span style="font-size:13.5px;color:#4E4740;text-align:right">ayer</span>
+            <span style="text-align:center;color:#8A7F70;font-size:15px">›</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1.3fr 1.2fr 52px;gap:16px;padding:{{ rowPad }};border-bottom:1px solid #F0E9DE;align-items:center" style-hover="background:#FDFBF7">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0"><span style="width:36px;height:36px;border-radius:999px;background:#F2EDE4;color:#8A7F70;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">EP</span><div style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:15px;font-weight:600">Estudio Contable Pérez</span><span style="font-size:12.5px;color:#8A7F70">20-27889541-2 · Rosario</span></div></div>
+            <div style="display:flex;gap:6px"><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#FAF0D9;border:1px solid #E8D9AE;color:#7A5810">Acreedor</span></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px"><span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;color:#9C3520;font-variant-numeric:tabular-nums">− $ 95.000</span><span style="font-size:12px;color:#8A7F70">le debés</span></div>
+            <span style="font-size:13.5px;color:#4E4740;text-align:right">hace 20 días</span>
+            <span style="text-align:center;color:#8A7F70;font-size:15px">›</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1.3fr 1.2fr 52px;gap:16px;padding:{{ rowPad }};border-bottom:1px solid #F0E9DE;align-items:center" style-hover="background:#FDFBF7">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0"><span style="width:36px;height:36px;border-radius:999px;background:#E7F0EA;color:#1F5D4C;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">LE</span><div style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:15px;font-weight:600">Panadería La Espiga</span><span style="font-size:12.5px;color:#8A7F70">20-30112233-4 · Funes</span></div></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#E7F0EA;border:1px solid #C6DCD0;color:#155744">Cliente</span><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#F5EAE4;border:1px solid #E3CDBF;color:#8A4426">Proveedor</span><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#FAF0D9;border:1px solid #E8D9AE;color:#7A5810">Acreedor</span></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px"><span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">+ $ 46.200</span><span style="font-size:12px;color:#8A7F70">te deben</span></div>
+            <span style="font-size:13.5px;color:#4E4740;text-align:right">hoy</span>
+            <span style="text-align:center;color:#8A7F70;font-size:15px">›</span>
+          </div>
+          <div style="display:grid;grid-template-columns:2.4fr 1.4fr 1.3fr 1.2fr 52px;gap:16px;padding:{{ rowPad }};align-items:center;opacity:.55">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0"><span style="width:36px;height:36px;border-radius:999px;background:#F2EDE4;color:#8A7F70;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">BN</span><div style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:15px;font-weight:600;text-decoration:line-through">Bazar Nuevo Siglo</span><span style="font-size:12.5px;color:#8A7F70">Dada de baja el 12/07/26</span></div></div>
+            <div style="display:flex;gap:6px"><span style="font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:#F2EDE4;border:1px solid #DCD1BF;color:#8A7F70">Cliente</span></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px"><span style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;color:#8A7F70;font-variant-numeric:tabular-nums">$ 0</span><span style="font-size:12px;color:#8A7F70">sin saldo</span></div>
+            <span style="font-size:13.5px;color:#4E4740;text-align:right">—</span>
+            <span style="text-align:center;color:#8A7F70;font-size:15px">›</span>
+          </div>
+          <div style="margin-top:auto;padding:14px 20px;border-top:1px solid #E5DACA;display:flex;align-items:center;background:#FDFBF7">
+            <span style="font-size:13.5px;color:#6D655B">Mostrando 7 de 148</span>
+            <div style="margin-left:auto;display:flex;gap:8px"><span style="font-size:13.5px;font-weight:600;border:1px solid #DCD1BF;border-radius:8px;padding:9px 14px;color:#B0A695;background:#fff">Anterior</span><span style="font-size:13.5px;font-weight:600;border:1px solid #DCD1BF;border-radius:8px;padding:9px 14px;color:#23201C;background:#fff;cursor:pointer">Siguiente</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. FORM REMITO -->
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:12.5px;font-weight:700;color:#1F5D4C">04</span><span style="font-size:15px;font-weight:600">Nuevo remito — líneas dinámicas</span><span style="font-size:13.5px;color:#8A7F70">— cada línea es una tarjeta, cómoda de tocar en el iPad del mostrador</span></div>
+    <div style="width:1360px;height:900px;background:#F2EDE4;border:1px solid #E5DACA;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+      <header style="flex:none;background:#FBF8F3;border-bottom:1px solid #E5DACA;height:72px;display:flex;align-items:center;padding:0 28px;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:#8A7F70"><a href="#">Remitos</a> › Nuevo</span><span style="font-family:'Source Serif 4',serif;font-size:22px;font-weight:600">Remito de salida</span></div>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:#F2EDE4;border:1px solid #DCD1BF;color:#4E4740">✎ Borrador</span>
+        <span style="font-size:13px;color:#8A7F70">Se guarda solo · 09:44</span>
+        <div style="margin-left:auto;display:flex;gap:10px">
+          <button style="font-family:inherit;font-size:14.5px;font-weight:600;color:#4E4740;background:transparent;border:none;padding:12px 14px;cursor:pointer">Descartar</button>
+          <button style="font-family:inherit;font-size:14.5px;font-weight:600;color:#23201C;background:#fff;border:1px solid #DCD1BF;border-radius:10px;padding:12px 18px;cursor:pointer">Guardar borrador</button>
+          <button style="font-family:inherit;font-size:14.5px;font-weight:600;color:#fff;background:#1F5D4C;border:none;border-radius:10px;padding:12px 18px;cursor:pointer">Emitir</button>
+        </div>
+      </header>
+      <div style="flex:1;display:flex;min-height:0">
+        <div style="flex:1;padding:26px 28px;display:flex;flex-direction:column;gap:20px;overflow:hidden;min-width:0">
+          <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;padding:20px;display:grid;grid-template-columns:2fr 1.2fr 1fr;gap:18px">
+            <div style="display:flex;flex-direction:column;gap:7px"><span style="font-size:13px;font-weight:600;color:#4E4740">¿A quién le entregás?</span><div style="border:1.5px solid #1F5D4C;border-radius:10px;padding:12px 14px;font-size:15px;background:#fff;box-shadow:0 0 0 4px rgba(31,93,76,.10);display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:999px;background:#E7F0EA;color:#1F5D4C;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">CS</span>Corralón San Justo SA</div></div>
+            <div style="display:flex;flex-direction:column;gap:7px"><span style="font-size:13px;font-weight:600;color:#4E4740">Tipo de movimiento</span><div style="display:flex;gap:8px"><span style="flex:1;text-align:center;font-size:14.5px;font-weight:600;padding:12px 0;border-radius:10px;background:#23201C;color:#fff">Salida</span><span style="flex:1;text-align:center;font-size:14.5px;font-weight:600;padding:12px 0;border-radius:10px;background:#fff;border:1px solid #DCD1BF;color:#4E4740">Entrada</span></div></div>
+            <div style="display:flex;flex-direction:column;gap:7px"><span style="font-size:13px;font-weight:600;color:#4E4740">Fecha</span><div style="border:1px solid #DCD1BF;border-radius:10px;padding:12px 14px;font-size:15px;background:#fff">25 / 08 / 2026</div></div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;flex:1;min-height:0">
+            <div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:'Source Serif 4',serif;font-size:19px;font-weight:600">Qué entregás</span><span style="font-size:13px;color:#8A7F70">2 líneas · 165 unidades</span></div>
+
+            <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;padding:16px;display:flex;align-items:flex-end;gap:14px">
+              <span style="width:26px;height:26px;border-radius:999px;background:#F2EDE4;color:#8A7F70;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:12px;flex:none">1</span>
+              <div style="flex:2.4;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#8A7F70">Producto</span><div style="border:1px solid #DCD1BF;border-radius:10px;padding:12px 14px;font-size:15px;background:#fff">Cemento Loma Negra 50kg</div></div>
+              <div style="flex:.8;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#8A7F70">Cantidad</span><div style="border:1px solid #DCD1BF;border-radius:10px;padding:12px 14px;font-size:15px;background:#fff;display:flex"><span>120</span><span style="margin-left:auto;color:#8A7F70;font-size:13px">bolsas</span></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#8A7F70">Precio unitario</span><div style="border:1px solid #DCD1BF;border-radius:10px;padding:12px 14px;font-size:15px;background:#fff">$ 14.500,00</div></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;align-items:flex-end"><span style="font-size:12px;font-weight:600;color:#8A7F70">Subtotal</span><span style="font-family:'Source Serif 4',serif;font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;padding:9px 0">$ 1.740.000</span></div>
+              <span style="width:40px;height:40px;border-radius:10px;border:1px solid #E5DACA;color:#8A7F70;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;margin-bottom:4px;background:#fff" style-hover="border-color:#C98B78;color:#9C3520">✕</span>
+            </div>
+
+            <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;padding:16px;display:flex;align-items:flex-end;gap:14px">
+              <span style="width:26px;height:26px;border-radius:999px;background:#F2EDE4;color:#8A7F70;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:12px;flex:none">2</span>
+              <div style="flex:2.4;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#8A7F70">Producto</span><div style="border:1px solid #DCD1BF;border-radius:10px;padding:12px 14px;font-size:15px;background:#fff">Hierro del 8 · barra 12m</div></div>
+              <div style="flex:.8;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#8A7F70">Cantidad</span><div style="border:1px solid #DCD1BF;border-radius:10px;padding:12px 14px;font-size:15px;background:#fff;display:flex"><span>45</span><span style="margin-left:auto;color:#8A7F70;font-size:13px">unid.</span></div></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#8A7F70">Precio unitario</span><div style="border:1px solid #DCD1BF;border-radius:10px;padding:12px 14px;font-size:15px;background:#fff">$ 21.300,00</div></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;align-items:flex-end"><span style="font-size:12px;font-weight:600;color:#8A7F70">Subtotal</span><span style="font-family:'Source Serif 4',serif;font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;padding:9px 0">$ 958.500</span></div>
+              <span style="width:40px;height:40px;border-radius:10px;border:1px solid #E5DACA;color:#8A7F70;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;margin-bottom:4px;background:#fff">✕</span>
+            </div>
+
+            <div style="border:1.5px dashed #C4B69F;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;background:#FDFBF7" style-hover="border-color:#1F5D4C;background:#F7FBF8">
+              <span style="width:32px;height:32px;border-radius:999px;background:#E7F0EA;color:#1F5D4C;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600">+</span>
+              <div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:14.5px;font-weight:600;color:#1F5D4C">Agregar otro producto</span><span style="font-size:12.5px;color:#8A7F70">Buscá por nombre o SKU</span></div>
+            </div>
+          </div>
+        </div>
+
+        <aside style="width:340px;flex:none;border-left:1px solid #E5DACA;background:#FBF8F3;padding:26px;display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;font-size:14px;color:#4E4740"><span>Subtotal</span><span style="font-variant-numeric:tabular-nums">$ 2.698.500,00</span></div>
+            <div style="height:1px;background:#E5DACA"></div>
+            <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8A7F70">Total del remito</span><span style="font-family:'Source Serif 4',serif;font-size:36px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em">$ 2.698.500</span></div>
+          </div>
+          <div style="background:#E7F0EA;border:1px solid #C6DCD0;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:13.5px;font-weight:700;color:#155744">Cuando toques “Emitir”</span>
+            <span style="font-size:13px;color:#1F5D4C;line-height:1.55">El remito queda cerrado (solo se podrá anular) y GestioYA le carga automáticamente <strong>$ 2.698.500</strong> a la cuenta de Corralón San Justo.</span>
+            <div style="background:#fff;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:5px">
+              <span style="font-size:12px;color:#6D655B">Su saldo pasa de</span>
+              <div style="display:flex;align-items:baseline;gap:9px"><span style="font-family:'Source Serif 4',serif;font-size:16px;color:#6D655B;font-variant-numeric:tabular-nums">$ 500.000</span><span style="color:#8A7F70">→</span><span style="font-family:'Source Serif 4',serif;font-size:20px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">$ 3.198.500</span></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:11px;align-items:flex-start;border:1px solid #E8D9AE;background:#FCF7E9;border-radius:12px;padding:14px"><span style="color:#8A6410;font-size:14px">⏱</span><span style="font-size:13px;color:#7A5810;line-height:1.5">Ojo: esta entidad ya tiene <strong>$ 500.000 vencidos</strong> hace 4 días. Podés emitir igual.</span></div>
+          <div style="display:flex;flex-direction:column;gap:7px;margin-top:auto"><span style="font-size:13px;font-weight:600;color:#4E4740">Observaciones</span><div style="border:1px solid #DCD1BF;border-radius:10px;padding:12px 14px;font-size:14px;background:#fff;color:#A79C8D;min-height:56px">Retira transporte propio, portón trasero…</div></div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. CUENTA CORRIENTE -->
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:12.5px;font-weight:700;color:#1F5D4C">05</span><span style="font-size:15px;font-weight:600">Cuenta corriente</span><span style="font-size:13.5px;color:#8A7F70">— el saldo se dice con palabras primero y con número después</span></div>
+    <div style="width:1360px;height:900px;background:#F2EDE4;border:1px solid #E5DACA;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+      <header style="flex:none;background:#FBF8F3;border-bottom:1px solid #E5DACA;height:64px;display:flex;align-items:center;padding:0 28px;gap:14px">
+        <span style="font-size:13.5px;color:#8A7F70"><a href="#">Cuentas</a> › <a href="#">Cuentas corrientes</a> › <strong style="color:#23201C">Ferretería Iglesias</strong></span>
+        <div style="margin-left:auto;display:flex;gap:10px">
+          <button style="font-family:inherit;font-size:14px;font-weight:600;color:#23201C;background:#fff;border:1px solid #DCD1BF;border-radius:10px;padding:11px 16px;cursor:pointer">Resumen en PDF</button>
+          <button style="font-family:inherit;font-size:14px;font-weight:600;color:#23201C;background:#fff;border:1px solid #DCD1BF;border-radius:10px;padding:11px 16px;cursor:pointer">Nueva obligación</button>
+          <button style="font-family:inherit;font-size:14px;font-weight:600;color:#fff;background:#1F5D4C;border:none;border-radius:10px;padding:11px 16px;cursor:pointer">Registrar cobro</button>
+        </div>
+      </header>
+
+      <div style="padding:26px 28px 0;display:flex;gap:18px">
+        <div style="flex:1;background:#1F5D4C;border-radius:16px;padding:28px 32px;display:flex;flex-direction:column;gap:10px;color:#fff">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:40px;height:40px;border-radius:999px;background:rgba(255,255,255,.16);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center">FI</span>
+            <div style="display:flex;flex-direction:column"><span style="font-size:16px;font-weight:600">Ferretería Iglesias</span><span style="font-size:12.5px;color:#A9C9BD">30-71234567-9 · Cliente y proveedor</span></div>
+          </div>
+          <span style="font-family:'Source Serif 4',serif;font-size:26px;font-weight:600;margin-top:8px">Te deben $ 312.400,00</span>
+          <span style="font-family:'Source Serif 4',serif;font-size:58px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1">+ $ 312.400,00</span>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+            <span style="display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:#FAF0D9;color:#7A5810">⏱ Todo el saldo está vencido</span>
+            <span style="font-size:13.5px;color:#C6DCD0">La obligación más vieja venció hace 7 días</span>
+          </div>
+        </div>
+        <div style="width:300px;flex:none;display:flex;flex-direction:column;gap:12px">
+          <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:3px"><span style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8A7F70">Obligaciones abiertas</span><span style="font-family:'Source Serif 4',serif;font-size:24px;font-weight:600">3</span><span style="font-size:12.5px;color:#4E4740">1 vencida · 1 parcial · 1 pendiente</span></div>
+          <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:3px"><span style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8A7F70">Último cobro</span><span style="font-family:'Source Serif 4',serif;font-size:24px;font-weight:600">$ 150.000</span><span style="font-size:12.5px;color:#4E4740">14/08 · transferencia</span></div>
+          <div style="background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:3px"><span style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8A7F70">Cheques en cartera</span><span style="font-family:'Source Serif 4',serif;font-size:24px;font-weight:600">1 · $ 90.000</span><span style="font-size:12.5px;color:#4E4740">Vence 05/09 · Banco Galicia</span></div>
+        </div>
+      </div>
+
+      <div style="padding:22px 28px 0;display:flex;gap:6px">
+        <span style="font-size:14.5px;font-weight:600;padding:10px 16px;border-radius:999px;background:#23201C;color:#fff">Movimientos 24</span>
+        <span style="font-size:14.5px;font-weight:500;padding:10px 16px;border-radius:999px;background:#fff;border:1px solid #DCD1BF;color:#4E4740">Obligaciones 3</span>
+        <span style="font-size:14.5px;font-weight:500;padding:10px 16px;border-radius:999px;background:#fff;border:1px solid #DCD1BF;color:#4E4740">Pagos y cheques 9</span>
+        <span style="font-size:14.5px;font-weight:500;padding:10px 16px;border-radius:999px;background:#fff;border:1px solid #DCD1BF;color:#4E4740">Datos</span>
+      </div>
+
+      <div style="flex:1;padding:16px 28px 26px;overflow:hidden;display:flex">
+        <div style="flex:1;background:#FBF8F3;border:1px solid #E5DACA;border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+          <div style="display:grid;grid-template-columns:1.1fr 2.6fr 1.1fr 1.2fr;gap:16px;padding:12px 20px;border-bottom:1px solid #E5DACA;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8A7F70"><span>Fecha</span><span>Concepto</span><span style="text-align:right">Monto</span><span style="text-align:right">Saldo después</span></div>
+          <div style="display:grid;grid-template-columns:1.1fr 2.6fr 1.1fr 1.2fr;gap:16px;padding:{{ rowPadCC }};border-bottom:1px solid #F0E9DE;align-items:center">
+            <div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">18 ago</span><span style="font-size:12px;color:#8A7F70">2026</span></div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="width:32px;height:32px;border-radius:8px;background:#F2EDE4;color:#4E4740;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none">📄</span><div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:14.5px;font-weight:500">Remito R-0001288 — 40 bolsas de cemento</span><span style="font-size:12.5px;color:#8A7F70">Generó la obligación OB-0448 · <a href="#">ver remito</a></span></div></div>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">+ 312.400,00</span>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">312.400,00</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1.1fr 2.6fr 1.1fr 1.2fr;gap:16px;padding:{{ rowPadCC }};border-bottom:1px solid #F0E9DE;align-items:center">
+            <div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">14 ago</span><span style="font-size:12px;color:#8A7F70">2026</span></div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="width:32px;height:32px;border-radius:8px;background:#E7F0EA;color:#1F5D4C;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none">💵</span><div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:14.5px;font-weight:500">Cobro por transferencia</span><span style="font-size:12.5px;color:#8A7F70">Aplicado a OB-0421 <span style="font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:999px;background:#FDF2EE;border:1px solid #EAC9BE;color:#9C3520">pago parcial</span></span></div></div>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;color:#9C3520;font-variant-numeric:tabular-nums">− 150.000,00</span>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">0,00</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1.1fr 2.6fr 1.1fr 1.2fr;gap:16px;padding:{{ rowPadCC }};border-bottom:1px solid #F0E9DE;align-items:center">
+            <div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">11 ago</span><span style="font-size:12px;color:#8A7F70">2026</span></div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="width:32px;height:32px;border-radius:8px;background:#F5EAE4;color:#8A4426;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none">🧾</span><div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:14.5px;font-weight:500">Cheque 0043-889 recibido</span><span style="font-size:12.5px;color:#8A7F70">Banco Galicia · vence 05/09 · en cartera</span></div></div>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;color:#9C3520;font-variant-numeric:tabular-nums">− 90.000,00</span>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">150.000,00</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1.1fr 2.6fr 1.1fr 1.2fr;gap:16px;padding:{{ rowPadCC }};border-bottom:1px solid #F0E9DE;align-items:center">
+            <div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">6 ago</span><span style="font-size:12px;color:#8A7F70">2026</span></div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="width:32px;height:32px;border-radius:8px;background:#F2EDE4;color:#4E4740;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none">📄</span><div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:14.5px;font-weight:500">Remito R-0001240 — varios</span><span style="font-size:12.5px;color:#8A7F70">Generó la obligación OB-0421 · <a href="#">ver remito</a></span></div></div>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;color:#1F5D4C;font-variant-numeric:tabular-nums">+ 240.000,00</span>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">240.000,00</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1.1fr 2.6fr 1.1fr 1.2fr;gap:16px;padding:{{ rowPadCC }};border-bottom:1px solid #F0E9DE;align-items:center;opacity:.55">
+            <div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">2 ago</span><span style="font-size:12px;color:#8A7F70">2026</span></div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="width:32px;height:32px;border-radius:8px;background:#F2EDE4;color:#8A7F70;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none">⊘</span><div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:14.5px;font-weight:500;text-decoration:line-through">Remito R-0001233 anulado</span><span style="font-size:12.5px;color:#8A7F70">Error de carga · no afecta el saldo</span></div></div>
+            <span style="text-align:right;font-size:15px;color:#8A7F70">—</span>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:#8A7F70">0,00</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1.1fr 2.6fr 1.1fr 1.2fr;gap:16px;padding:{{ rowPadCC }};align-items:center">
+            <div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">28 jul</span><span style="font-size:12px;color:#8A7F70">2026</span></div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="width:32px;height:32px;border-radius:8px;background:#FDF2EE;color:#9C3520;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none">↩</span><div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:14.5px;font-weight:500">Nota de crédito por devolución</span><span style="font-size:12.5px;color:#8A7F70">5 bolsas rotas</span></div></div>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;color:#9C3520;font-variant-numeric:tabular-nums">− 72.500,00</span>
+            <span style="text-align:right;font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">0,00</span>
+          </div>
+          <div style="margin-top:auto;padding:14px 20px;border-top:1px solid #E5DACA;background:#FDFBF7;display:flex;align-items:center"><span style="font-size:13.5px;color:#6D655B">6 de 24 movimientos</span><a href="#" style="margin-left:auto;font-size:13.5px">Ver más</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. NAV + ESTADOS -->
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:12.5px;font-weight:700;color:#1F5D4C">06</span><span style="font-size:15px;font-weight:600">Navegación, tablet y estados</span><span style="font-size:13.5px;color:#8A7F70">— en tablet la nav superior se vuelve barra inferior con 5 destinos</span></div>
+    <div style="width:1360px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+
+      <div style="width:440px;background:#FBF8F3;border:1px solid #E5DACA;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#8A7F70">Tablet 834px — barra inferior</span>
+        <div style="border:1px solid #E5DACA;border-radius:12px;height:360px;display:flex;flex-direction:column;overflow:hidden;background:#F2EDE4">
+          <div style="background:#FBF8F3;border-bottom:1px solid #E5DACA;padding:14px 16px;display:flex;align-items:center;gap:10px"><div style="width:22px;height:22px;border-radius:7px;background:#1F5D4C;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',serif;font-size:13px">G</div><span style="font-family:'Source Serif 4',serif;font-size:16px;font-weight:600">Cuentas</span><span style="margin-left:auto;width:28px;height:28px;border-radius:999px;background:#E7F0EA;color:#1F5D4C;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">MG</span></div>
+          <div style="flex:1;padding:14px;display:flex;flex-direction:column;gap:10px;overflow:hidden">
+            <div style="background:#FBF8F3;border:1px solid #E5DACA;border-left:4px solid #1F5D4C;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">Ferretería Iglesias</span><span style="font-family:'Source Serif 4',serif;font-size:22px;font-weight:600;color:#1F5D4C">+ $ 312.400</span><span style="font-size:12.5px;color:#8A7F70">te deben · vencido</span></div>
+            <div style="background:#FBF8F3;border:1px solid #E5DACA;border-left:4px solid #9C3520;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">Papelera Andina SRL</span><span style="font-family:'Source Serif 4',serif;font-size:22px;font-weight:600;color:#9C3520">− $ 842.150</span><span style="font-size:12.5px;color:#8A7F70">le debés</span></div>
+          </div>
+          <div style="background:#FBF8F3;border-top:1px solid #E5DACA;padding:10px 8px;display:flex;justify-content:space-around">
+            <span style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#8A7F70;min-width:56px"><span style="font-size:16px">⌂</span>Inicio</span>
+            <span style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#8A7F70;min-width:56px"><span style="font-size:16px">👥</span>Entidades</span>
+            <span style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#8A7F70;min-width:56px"><span style="font-size:16px">📄</span>Remitos</span>
+            <span style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#1F5D4C;font-weight:700;min-width:56px"><span style="font-size:16px">💵</span>Cuentas</span>
+            <span style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#8A7F70;min-width:56px"><span style="font-size:16px">☑</span>Tareas</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:430px;background:#FBF8F3;border:1px solid #E5DACA;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#8A7F70">Selector de empresa (multi-tenant)</span>
+        <div style="border:1px solid #E5DACA;border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 10px 30px rgba(35,32,28,.08)">
+          <div style="padding:12px 16px;border-bottom:1px solid #F0E9DE;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8A7F70">Tus empresas</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:#F7FBF8"><span style="width:32px;height:32px;border-radius:8px;background:#B45B33;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">DN</span><div style="display:flex;flex-direction:column"><span style="font-size:14.5px;font-weight:600">Distribuidora Norte</span><span style="font-size:12.5px;color:#8A7F70">30-71234567-9 · dueño</span></div><span style="margin-left:auto;color:#1F5D4C;font-size:15px">✓</span></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px"><span style="width:32px;height:32px;border-radius:8px;background:#F2EDE4;color:#8A7F70;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">+</span><span style="font-size:14.5px;font-weight:600;color:#1F5D4C">Agregar otra empresa</span></div>
+        </div>
+        <span style="font-size:13px;color:#6D655B;line-height:1.55">El MVP maneja una empresa por usuario; el componente ya reserva el lugar y el modelo mental para cuando haya varias.</span>
+      </div>
+
+      <sc-if value="{{ showStates }}" hint-placeholder-val="{{ true }}">
+        <div style="width:434px;background:#FBF8F3;border:1px solid #E5DACA;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:16px">
+          <span style="font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#8A7F70">Estados</span>
+          <div style="border:1px solid #E5DACA;border-radius:12px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;background:#fff">
+            <div style="width:44px;height:44px;border-radius:12px;background:#F2EDE4;display:flex;align-items:center;justify-content:center;font-size:18px">👥</div>
+            <span style="font-size:16px;font-weight:600">Todavía no hay clientes cargados</span>
+            <span style="font-size:13.5px;color:#6D655B;max-width:280px;line-height:1.5">Cargá el primero y en dos minutos podés emitirle un remito.</span>
+            <button style="font-family:inherit;font-size:14px;font-weight:600;color:#fff;background:#1F5D4C;border:none;border-radius:10px;padding:11px 18px;cursor:pointer;margin-top:4px">Cargar cliente</button>
+            <a href="#" style="font-size:13px">o traer desde un Excel</a>
+          </div>
+          <div style="border:1px solid #E5DACA;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:11px;background:#fff">
+            <span style="font-size:12.5px;color:#8A7F70">Cargando</span>
+            <div style="display:flex;align-items:center;gap:12px"><div style="width:36px;height:36px;border-radius:999px;background:#F0E9DE"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="height:12px;width:60%;background:#F0E9DE;border-radius:4px"></div><div style="height:10px;width:38%;background:#F5F0E7;border-radius:4px"></div></div><div style="height:16px;width:80px;background:#F0E9DE;border-radius:4px"></div></div>
+            <div style="display:flex;align-items:center;gap:12px"><div style="width:36px;height:36px;border-radius:999px;background:#F5F0E7"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="height:12px;width:48%;background:#F5F0E7;border-radius:4px"></div><div style="height:10px;width:30%;background:#F8F4ED;border-radius:4px"></div></div><div style="height:16px;width:80px;background:#F5F0E7;border-radius:4px"></div></div>
+          </div>
+          <div style="border:1px solid #EAC9BE;background:#FDF2EE;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:14.5px;font-weight:600;color:#8A2E1B">⚠ No pudimos traer los datos</span>
+            <span style="font-size:13px;color:#8A2E1B;opacity:.85;line-height:1.5">Se cortó la conexión con el servidor. Nada de lo que cargaste se perdió.</span>
+            <div style="display:flex;gap:9px;margin-top:2px"><button style="font-family:inherit;font-size:13.5px;font-weight:600;color:#fff;background:#9C3520;border:none;border-radius:9px;padding:10px 16px;cursor:pointer">Probar de nuevo</button><button style="font-family:inherit;font-size:13.5px;font-weight:600;color:#8A2E1B;background:#fff;border:1px solid #EAC9BE;border-radius:9px;padding:10px 16px;cursor:pointer">Avisar al soporte</button></div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- NOTA -->
+  <div style="width:1360px;background:#23201C;color:#fff;border-radius:16px;padding:32px 36px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#A79C8D">Tokens Tailwind v4</span>
+      <span style="font-size:12.5px;line-height:1.85;color:#D9D2C7;font-family:ui-monospace,monospace">--color-ink: #23201C<br>--color-paper: #FBF8F3<br>--color-canvas: #F2EDE4<br>--color-verde: #1F5D4C<br>--color-terracota: #B45B33<br>--color-neg: #9C3520<br>--radius-lg: 12px<br>--spacing: 8px</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#A79C8D">Fuentes</span>
+      <span style="font-size:13.5px;line-height:1.7;color:#D9D2C7">Source Serif 4 600 — títulos y todas las cifras de dinero<br>Public Sans 400/500/600/700 — UI, tablas, botones<br>Ambas en Google Fonts.</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#A79C8D">Accesibilidad y tono</span>
+      <span style="font-size:13.5px;line-height:1.7;color:#D9D2C7">Todo estado se dice también con palabras (“te deben”, “vencido hace 7 días”). Targets ≥ 44px. Contraste mínimo 4.8:1. Verde sobre papel: 7.1:1.</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showStates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Contenido&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;cómoda&quot;,&quot;compacta&quot;],&quot;default&quot;:&quot;cómoda&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Contenido&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const comoda = (this.props.density ?? 'cómoda') === 'cómoda';
+    return {
+      showStates: this.props.showStates ?? true,
+      rowPad: comoda ? '14px 20px' : '9px 20px',
+      rowPadCC: comoda ? '16px 20px' : '10px 20px'
+    };
+  }
+}
+</script>
+</body>
+</html>

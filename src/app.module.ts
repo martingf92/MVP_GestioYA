@@ -14,6 +14,7 @@ import { RemitosModule } from './remitos/remitos.module';
 import { CuentasModule } from './cuentas/cuentas.module';
 import { TareasModule } from './tareas/tareas.module';
 import { AuditModule } from './common/audit/audit.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { AuthMiddleware } from './common/auth/auth.middleware';
 import { TenantMiddleware } from './common/tenant/tenant.middleware';
 import { AuditInterceptor } from './common/audit/audit.interceptor';
@@ -30,6 +31,7 @@ import { ErrorLogFilter } from './common/errors/error-log.filter';
     CuentasModule,
     TareasModule,
     AuditModule,
+    DashboardModule,
   ],
   providers: [
     AuthMiddleware,

@@ -23,6 +23,12 @@ export interface Entidad {
   // servicio, préstamo) sin que medie compra de mercadería -- no son
   // excluyentes, ver NOTAS.md.
   acreedor: { tipoDeuda: string | null } | null;
+  // null = todavía no tuvo ningún movimiento (nunca se creó la cuenta
+  // corriente -- se crea sola al primer movimiento, ver NOTAS.md entrega 10).
+  cuentaCorriente: {
+    saldoActual: string;
+    movimientos: { fecha: string }[];
+  } | null;
 }
 
 export interface UnidadMedida {
@@ -146,35 +152,52 @@ export interface Tarea {
   notificaciones: Notificacion[];
 }
 
-// Guardado en localStorage a propósito: esto es un frontend de prueba
-// interno, no la versión final. Antes de exponer esto a clientes reales
-// conviene revisar el manejo de tokens en el cliente (XSS, httpOnly cookies
-// para el refresh token, etc.) -- ver NOTAS.md.
+// Guardado en localStorage/sessionStorage a propósito: esto es un frontend
+// de prueba interno, no la versión final. Antes de exponer esto a clientes
+// reales conviene revisar el manejo de tokens en el cliente (XSS, httpOnly
+// cookies para el refresh token, etc.) -- ver NOTAS.md.
+//
+// "No cerrar sesión" (checkbox de Login) decide el storage: marcado
+// persiste en localStorage (sobrevive a cerrar el navegador); sin marcar
+// usa sessionStorage (se pierde al cerrar la pestaña). REMEMBER_KEY vive
+// siempre en localStorage porque hace falta saber cuál storage leer antes
+// de tener la sesión misma.
 const ACCESS_TOKEN_KEY = 'gestioya_access_token';
 const REFRESH_TOKEN_KEY = 'gestioya_refresh_token';
 const USUARIO_KEY = 'gestioya_usuario';
+const REMEMBER_KEY = 'gestioya_remember';
+
+function getSessionStorage(): Storage {
+  const remember = localStorage.getItem(REMEMBER_KEY) === '1';
+  return remember ? localStorage : sessionStorage;
+}
 
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+  return getSessionStorage().getItem(ACCESS_TOKEN_KEY);
 }
 
 export function getUsuario(): Usuario | null {
   if (typeof window === 'undefined') return null;
-  const raw = localStorage.getItem(USUARIO_KEY);
+  const raw = getSessionStorage().getItem(USUARIO_KEY);
   return raw ? JSON.parse(raw) : null;
 }
 
-function setSession(accessToken: string, refreshToken: string, usuario: Usuario) {
-  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-  localStorage.setItem(USUARIO_KEY, JSON.stringify(usuario));
+function setSession(accessToken: string, refreshToken: string, usuario: Usuario, remember: boolean) {
+  localStorage.setItem(REMEMBER_KEY, remember ? '1' : '0');
+  const storage = remember ? localStorage : sessionStorage;
+  storage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  storage.setItem(USUARIO_KEY, JSON.stringify(usuario));
 }
 
 export function clearSession() {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  localStorage.removeItem(USUARIO_KEY);
+  for (const storage of [localStorage, sessionStorage]) {
+    storage.removeItem(ACCESS_TOKEN_KEY);
+    storage.removeItem(REFRESH_TOKEN_KEY);
+    storage.removeItem(USUARIO_KEY);
+  }
+  localStorage.removeItem(REMEMBER_KEY);
 }
 
 export class ApiError extends Error {
@@ -215,7 +238,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 const HTTP_NO_CONTENT = 204;
 
-export async function login(email: string, password: string) {
+export async function login(email: string, password: string, remember = true) {
   const data = await request<{
     accessToken: string;
     refreshToken: string;
@@ -225,12 +248,29 @@ export async function login(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 
-  setSession(data.accessToken, data.refreshToken, data.usuario);
+  setSession(data.accessToken, data.refreshToken, data.usuario, remember);
   return data.usuario;
 }
 
-export function listEntidades() {
-  return request<{ data: Entidad[]; total: number }>('/entidades');
+export function listEntidades(params?: {
+  nombre?: string;
+  activo?: boolean;
+  tipo?: 'cliente' | 'proveedor' | 'acreedor';
+  orderBy?: 'nombre' | 'saldo';
+  orderDir?: 'asc' | 'desc';
+  skip?: number;
+  take?: number;
+}) {
+  const qs = new URLSearchParams();
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined) qs.set(key, String(value));
+    }
+  }
+  const suffix = qs.toString() ? `?${qs.toString()}` : '';
+  return request<{ data: Entidad[]; total: number; skip: number; take: number }>(
+    `/entidades${suffix}`,
+  );
 }
 
 export function createEntidad(input: {
@@ -445,4 +485,43 @@ export function updateTareaEstado(id: string, estado: 'abierta' | 'en_proceso' |
 
 export function deleteTarea(id: string) {
   return request<void>(`/tareas/${id}`, { method: 'DELETE' });
+}
+
+export interface ResumenDireccion {
+  total: number;
+  vencido: number;
+  cantidad: number;
+  cantidadVencidas: number;
+  vencenEstaSemana: number;
+}
+
+export interface DashboardResumen {
+  aCobrar: ResumenDireccion;
+  aPagar: ResumenDireccion;
+  remitosMes: { total: number; emitidos: number; borradoresSinEmitir: number };
+  paraReclamar: {
+    id: string;
+    descripcion: string | null;
+    entidad: { id: string; nombre: string };
+    fechaVencimiento: string | null;
+    saldo: number;
+    vencida: boolean;
+  }[];
+}
+
+export type PeriodoFlujo = 'diario' | 'semanal' | 'mensual';
+
+export interface DashboardFlujo {
+  periodo: PeriodoFlujo;
+  puntos: { clave: string; etiqueta: string; ingresos: number; egresos: number }[];
+  totalIngresos: number;
+  totalEgresos: number;
+}
+
+export function getDashboardResumen() {
+  return request<DashboardResumen>('/dashboard/resumen');
+}
+
+export function getDashboardFlujo(periodo: PeriodoFlujo) {
+  return request<DashboardFlujo>(`/dashboard/flujo?periodo=${periodo}`);
 }

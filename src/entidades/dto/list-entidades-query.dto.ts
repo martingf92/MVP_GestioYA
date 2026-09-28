@@ -14,6 +14,16 @@ export class ListEntidadesQueryDto {
   @IsIn(['cliente', 'proveedor', 'acreedor'])
   tipo?: 'cliente' | 'proveedor' | 'acreedor';
 
+  // Para el listado con saldo (pantalla de Entidades del frontend): ordenar
+  // por saldo de cuenta corriente en vez de por nombre.
+  @IsOptional()
+  @IsIn(['nombre', 'saldo'])
+  orderBy?: 'nombre' | 'saldo' = 'nombre';
+
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  orderDir?: 'asc' | 'desc' = 'asc';
+
   @IsOptional()
   @Type(() => Number)
   @IsInt()

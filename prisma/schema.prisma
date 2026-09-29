@@ -224,6 +224,9 @@ model Remito {
   entidad   Entidad? @relation(fields: [entidadId], references: [id])
   estado    String   @default("borrador") // borrador | emitido | anulado
   usuarioId String?
+  // Texto libre que sale en el remito y en el PDF (horario de entrega,
+  // quién recibe, etc.). Editable solo mientras es borrador.
+  observaciones String?
 
   detalles DetalleRemito[]
   // Obligación generada automáticamente al emitir este remito (si tiene

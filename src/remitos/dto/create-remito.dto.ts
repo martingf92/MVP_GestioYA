@@ -6,9 +6,13 @@ import {
   IsIn,
   IsOptional,
   IsString,
+  MaxLength,
   ValidateNested,
 } from 'class-validator';
 import { CreateDetalleRemitoDto } from './create-detalle-remito.dto';
+
+// Tiene que entrar en el PDF sin comerse la hoja.
+export const OBSERVACIONES_MAX = 500;
 
 export class CreateRemitoDto {
   // Sin `numero`: lo asigna el servidor al emitir (ver RemitosService.emitir).
@@ -18,6 +22,11 @@ export class CreateRemitoDto {
   @IsOptional()
   @IsDateString()
   fecha?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(OBSERVACIONES_MAX)
+  observaciones?: string;
 
   @IsOptional()
   @IsString()

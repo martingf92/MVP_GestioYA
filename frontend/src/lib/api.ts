@@ -67,6 +67,7 @@ export interface Remito {
   entidadId: string | null;
   entidad: Entidad | null;
   estado: 'borrador' | 'emitido' | 'anulado';
+  observaciones: string | null;
   detalles: DetalleRemito[];
   // Obligación creada automáticamente al emitir (si el remito tiene
   // entidad), ver RemitosService.emitir() en el backend.
@@ -401,6 +402,7 @@ export function createRemito(input: {
   tipo: 'E' | 'S';
   entidadId?: string;
   fecha?: string;
+  observaciones?: string;
   detalles: DetalleRemitoInput[];
 }) {
   return request<Remito>('/remitos', {
@@ -416,6 +418,8 @@ export function updateRemito(
     tipo?: 'E' | 'S';
     entidadId?: string | null;
     fecha?: string;
+    /** "" las borra. */
+    observaciones?: string;
     detalles?: DetalleRemitoInput[];
   },
 ) {

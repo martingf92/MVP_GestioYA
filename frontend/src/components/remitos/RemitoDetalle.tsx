@@ -229,6 +229,15 @@ export function RemitoDetalle({
               </table>
             </div>
           </section>
+
+          {r.observaciones && (
+            <Card>
+              <p className="text-[12px] font-bold tracking-[0.1em] text-muted uppercase">Observaciones</p>
+              <p className="mt-1.5 text-[14.5px] leading-[1.55] whitespace-pre-line text-ink-soft">
+                {r.observaciones}
+              </p>
+            </Card>
+          )}
         </div>
 
         {/* Resumen */}

@@ -50,6 +50,8 @@ type EstadoGuardado =
   | { tipo: 'error'; mensaje: string };
 
 const AUTOSAVE_MS = 2000;
+// Mismo límite que el backend (OBSERVACIONES_MAX en create-remito.dto.ts).
+const OBSERVACIONES_MAX = 500;
 
 let contadorLineas = 0;
 function nuevaLinea(): Linea {
@@ -116,6 +118,7 @@ export function RemitoEditor({
   const [entidadId, setEntidadId] = useState(inicial?.entidadId ?? '');
   const fechaInicial = inicial ? fechaLocal(new Date(inicial.fecha)) : fechaLocal(new Date());
   const [fecha, setFecha] = useState(fechaInicial);
+  const [observaciones, setObservaciones] = useState(inicial?.observaciones ?? '');
   const [lineas, setLineas] = useState<Linea[]>(() =>
     inicial && inicial.detalles.length > 0
       ? inicial.detalles.map((d) => ({
@@ -189,9 +192,9 @@ export function RemitoEditor({
   // ---------- Autoguardado ----------
 
   // Estado más reciente para el guardado, que corre fuera del render.
-  const estadoRef = useRef({ remitoId, tipo, entidadId, fecha, lineas });
+  const estadoRef = useRef({ remitoId, tipo, entidadId, fecha, observaciones, lineas });
   useLayoutEffect(() => {
-    estadoRef.current = { remitoId, tipo, entidadId, fecha, lineas };
+    estadoRef.current = { remitoId, tipo, entidadId, fecha, observaciones, lineas };
   });
   // Los guardados se encadenan: nunca corren dos a la vez (el primero crea
   // el remito y los siguientes necesitan su id).
@@ -222,6 +225,7 @@ export function RemitoEditor({
             tipo: s.tipo,
             entidadId: s.entidadId || undefined,
             fecha: fechaParaApi(s.fecha),
+            observaciones: s.observaciones || undefined,
             detalles,
           });
           setRemitoId(creado.id);
@@ -234,6 +238,7 @@ export function RemitoEditor({
             tipo: s.tipo,
             entidadId: s.entidadId || null,
             fecha: s.fecha !== fechaInicial ? fechaParaApi(s.fecha) : undefined,
+            observaciones: s.observaciones,
             detalles: detalles.length > 0 ? detalles : undefined,
           });
         }
@@ -372,7 +377,7 @@ export function RemitoEditor({
   }
 
   function pedirDescartar() {
-    const hayAlgo = remitoId || entidadId || lineas.some((l) => l.productoId);
+    const hayAlgo = remitoId || entidadId || observaciones.trim() || lineas.some((l) => l.productoId);
     if (hayAlgo) setModal('descartar');
     else router.push('/remitos');
   }
@@ -599,17 +604,25 @@ export function RemitoEditor({
             </AlertBanner>
           )}
 
-          <Field label="Observaciones" htmlFor="remito-obs">
+          <Field label="Observaciones (opcional)" htmlFor="remito-obs">
             <textarea
               id="remito-obs"
-              disabled
               rows={3}
-              placeholder="Todavía no disponible"
+              maxLength={OBSERVACIONES_MAX}
+              value={observaciones}
+              onChange={(e) => {
+                setObservaciones(e.target.value);
+                cambiar();
+              }}
+              placeholder="Horario de entrega, quién recibe, estado de la mercadería…"
               aria-describedby="remito-obs-ayuda"
-              className="w-full cursor-not-allowed rounded-[10px] border border-line bg-canvas px-[15px] py-[12px] text-[15px] text-disabled-fg placeholder:text-disabled-fg"
+              className="w-full resize-y rounded-[10px] border border-input-border bg-white px-[15px] py-[12px] text-[15px] text-ink placeholder:text-placeholder focus-visible:outline-none"
             />
-            <p id="remito-obs-ayuda" className="text-[12px] text-muted">
-              Falta sumar este campo al sistema: por ahora no se guarda.
+            <p id="remito-obs-ayuda" className="flex justify-between gap-3 text-[12px] text-muted">
+              <span>Salen impresas en el PDF.</span>
+              <span className="tabular">
+                {observaciones.length}/{OBSERVACIONES_MAX}
+              </span>
             </p>
           </Field>
 

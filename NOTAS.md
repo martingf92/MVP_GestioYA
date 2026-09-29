@@ -689,3 +689,28 @@ Detalle de remito rediseñado (emitido/anulado: badge, líneas, impacto en la cu
 ## Siguiente paso sugerido
 
 Commit de todo Remitos (entregas 18 a 20). Después: Productos, Unidades de medida y Tareas.
+
+---
+
+# Entrega 21: Remitos al 100% — observaciones, PDF rediseñado y textos viejos
+
+## Qué incluye esto
+
+- **Observaciones**: campo nuevo `Remito.observaciones` (texto opcional, máximo 500 caracteres). Se carga en el editor con autoguardado y contador, se ve en el detalle y sale en el PDF. Solo editable en borrador, como el resto del remito. Espacios de más se recortan; un texto vacío la borra.
+- **PDF rediseñado** (`src/remitos/remito-pdf.ts`, paleta "Mostrador"): empresa y CUIT arriba a la izquierda; "Remito de salida/entrada", número, fecha y estado (pastilla) a la derecha; "Entregado a / Recibido de" con documento, dirección, teléfono y email de la entidad; tabla con cabecera en color papel, SKU debajo del producto, cantidad con unidad y montos con centavos solo si los hay; total grande; recuadro de observaciones; en salidas, líneas de firma, aclaración, DNI y fecha de recepción ("Recibí conforme la mercadería detallada"); marca de agua "BORRADOR" o "ANULADO"; pie "Documento no válido como factura" y "Página X de Y". La tabla corta página y repite la cabecera.
+- **Textos viejos**: la migración `20260929150000_remito_observaciones_y_textos` reemplaza "Remito c197b07e" (comienzo del id, anterior a la numeración) por "Remito 0001-00000004" en las descripciones de obligaciones y en los conceptos de movimientos de cuenta corriente. En una base nueva no toca nada.
+
+## Decisiones
+
+- PDF con las tipografías estándar del formato (Times para número y montos, Helvetica para el resto) en vez de embeber Source Serif y Public Sans: no hay que sumar archivos de fuentes al backend, y se parece lo suficiente.
+- "Documento no válido como factura": el remito no tiene validez fiscal ante AFIP (ver entrega 18), así que se aclara.
+- Firma de conformidad solo en salidas: en una entrada quien recibe es la propia empresa.
+
+## Probado
+
+API: crear con observaciones (recorta espacios), editar, "   " → null, 501 caracteres → 400, siguen después de emitir. PDFs revisados: emitido con observaciones y firma, anulado con marca de agua, borrador de 38 líneas en 2 páginas con cabecera repetida y total + observaciones al final. En el navegador: observaciones con autoguardado que sobrevive a la recarga, y visibles en el detalle.
+
+## Bugs encontrados y corregidos durante las pruebas del PDF
+
+- Un total grande ("$ 914.764,50") se partía en dos renglones: el ancho ahora se mide.
+- El total caía solo en una hoja nueva: el espacio reservado para el pie era mayor que el necesario.

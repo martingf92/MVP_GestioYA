@@ -70,7 +70,17 @@ export interface Remito {
   detalles: DetalleRemito[];
   // Obligación creada automáticamente al emitir (si el remito tiene
   // entidad), ver RemitosService.emitir() en el backend.
-  obligacionGenerada?: Obligacion | null;
+  // Viene cruda de Prisma (no pasa por ObligacionesService), así que no trae
+  // montoPagado/saldo/vencida calculados: sale de sumar `aplicaciones`, que
+  // el backend ya filtra sin pagos anulados.
+  obligacionGenerada?: {
+    id: string;
+    monto: string;
+    estado: Obligacion['estado'];
+    direccion: Obligacion['direccion'];
+    fechaVencimiento: string | null;
+    aplicaciones: { monto: string }[];
+  } | null;
 }
 
 export interface MovimientoCuenta {
@@ -342,8 +352,8 @@ export function deleteUnidadMedida(id: string) {
   return request<void>(`/unidades-medida/${id}`, { method: 'DELETE' });
 }
 
-export function listProductos() {
-  return request<{ data: Producto[]; total: number }>('/productos');
+export function listProductos(params?: { nombre?: string; activo?: boolean; skip?: number; take?: number }) {
+  return request<{ data: Producto[]; total: number }>(`/productos${queryString(params)}`);
 }
 
 export function createProducto(input: {
@@ -363,18 +373,35 @@ export function deleteProducto(id: string) {
   return request<void>(`/productos/${id}`, { method: 'DELETE' });
 }
 
-export function listRemitos() {
-  return request<{ data: Remito[]; total: number }>('/remitos');
+// Fila del listado: sin detalles, con total y cantidad de líneas calculados
+// en el servidor.
+export type RemitoResumen = Omit<Remito, 'detalles' | 'obligacionGenerada'> & {
+  lineas: number;
+  total: string;
+};
+
+export function listRemitos(params?: {
+  q?: string;
+  tipo?: 'E' | 'S';
+  estado?: Remito['estado'];
+  entidadId?: string;
+  skip?: number;
+  take?: number;
+}) {
+  return request<{ data: RemitoResumen[]; total: number }>(`/remitos${queryString(params)}`);
 }
 
 export function getRemito(id: string) {
   return request<Remito>(`/remitos/${id}`);
 }
 
+export type DetalleRemitoInput = { productoId: string; cantidad: number; precioUnitario: number };
+
 export function createRemito(input: {
   tipo: 'E' | 'S';
   entidadId?: string;
-  detalles: { productoId: string; cantidad: number; precioUnitario: number }[];
+  fecha?: string;
+  detalles: DetalleRemitoInput[];
 }) {
   return request<Remito>('/remitos', {
     method: 'POST',
@@ -382,14 +409,25 @@ export function createRemito(input: {
   });
 }
 
-export function updateRemitoDetalles(
+/** Solo en borrador. `entidadId: null` le saca la entidad. */
+export function updateRemito(
   id: string,
-  detalles: { productoId: string; cantidad: number; precioUnitario: number }[],
+  input: {
+    tipo?: 'E' | 'S';
+    entidadId?: string | null;
+    fecha?: string;
+    detalles?: DetalleRemitoInput[];
+  },
 ) {
   return request<Remito>(`/remitos/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ detalles }),
+    body: JSON.stringify(input),
   });
+}
+
+/** Borra un borrador (emitidos y anulados no se pueden borrar). */
+export function deleteRemitoBorrador(id: string) {
+  return request<{ id: string; eliminado: true }>(`/remitos/${id}`, { method: 'DELETE' });
 }
 
 export function emitirRemito(id: string) {
@@ -400,26 +438,34 @@ export function anularRemito(id: string) {
   return request<Remito>(`/remitos/${id}/anular`, { method: 'POST' });
 }
 
-// El endpoint exige el token en el header Authorization, así que un <a href>
-// plano no alcanza (el navegador no manda headers custom en una navegación) --
-// se pide como blob y se dispara la descarga a mano.
-export async function downloadRemitoPdf(id: string, filename: string) {
+/**
+ * Abre el PDF en una pestaña nueva (el handoff lo pide así). El endpoint
+ * exige el token en el header, así que un <a href> plano no alcanza: se pide
+ * como blob. La pestaña se abre antes del fetch, todavía dentro del click: si
+ * se abriera después del await, el navegador la bloquearía como popup.
+ */
+export async function openRemitoPdf(id: string, filename: string) {
+  const ventana = window.open('', '_blank');
   const token = getAccessToken();
   const res = await fetch(`${API_URL}/remitos/${id}/pdf`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
-
   if (!res.ok) {
+    ventana?.close();
     throw new ApiError(res.status, 'No se pudo generar el PDF');
   }
-
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
+  const url = URL.createObjectURL(await res.blob());
+  if (ventana) {
+    ventana.location.href = url;
+  } else {
+    // Popups bloqueados: se descarga.
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+  }
+  // La pestaña nueva necesita la URL un rato; después se libera.
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 export function getCuentaCorriente(entidadId: string) {

@@ -24,6 +24,15 @@ export function formatMonto(value: number | string, { centavos = false }: Opcion
   return (centavos ? currencyFormatterCentavos : currencyFormatter).format(Math.abs(n));
 }
 
+/**
+ * Para documentos (remitos): centavos solo si los hay. Un subtotal de
+ * $ 27,60 no puede mostrarse redondeado a $ 28.
+ */
+export function formatMontoExacto(value: number | string): string {
+  const n = typeof value === 'string' ? Number(value) : value;
+  return formatMonto(n, { centavos: Math.round(n * 100) % 100 !== 0 });
+}
+
 /** "+ $ 1.200" / "− $ 300" / "$ 0". */
 export function formatMontoConSigno(value: number | string, opciones: OpcionesMonto = {}): string {
   const n = typeof value === 'string' ? Number(value) : value;
@@ -44,7 +53,15 @@ export function formatSaldo(value: number | string, opciones: OpcionesMonto = {}
   return { texto, leyenda: 'sin saldo', color: 'muted' as const };
 }
 
-const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+/**
+ * Cómo se nombra un remito en pantalla. El número ("0001-00000015") lo
+ * asigna el servidor al emitir, así que un borrador todavía no tiene.
+ */
+export function remitoTitulo(r: { numero: string | null }): string {
+  return r.numero ? `N.º ${r.numero}` : 'Sin número';
+}
+
+const MESES =['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 /** Fecha en dos partes para columnas: { diaMes: "18 ago", anio: "2026" }. */
 export function formatFechaPartes(iso: string) {

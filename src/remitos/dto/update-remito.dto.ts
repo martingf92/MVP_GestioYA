@@ -11,10 +11,7 @@ import {
 import { CreateDetalleRemitoDto } from './create-detalle-remito.dto';
 
 export class UpdateRemitoDto {
-  @IsOptional()
-  @IsString()
-  numero?: string;
-
+  // Sin `numero`: lo asigna el servidor al emitir (ver RemitosService.emitir).
   @IsOptional()
   @IsIn(['E', 'S'])
   tipo?: 'E' | 'S';

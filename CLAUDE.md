@@ -60,9 +60,11 @@ entrega 15): se hace pantalla por pantalla, **mobile-first** (muchos
 comerciantes solo usan el celular), validando cada una en 375 / 768 / 1280px
 y esperando el OK de Martín antes de pasar a la siguiente. Hechas: Login,
 Entidades, Inicio (dashboard con gráfico de ingresos/egresos), Cuentas
-(resumen + cuenta corriente por entidad, entregas 15 y 16). Datos siempre
-reales de la API, no mocks. Pendientes de rediseño: Remitos, Productos,
-Unidades de medida, Tareas (todavía con el estilo viejo y `components/Nav.tsx`).
+(resumen + cuenta corriente por entidad, entregas 15 y 16), listado de
+Remitos (entrega 18, junto con la numeración automática `0001-00000015`
+asignada al emitir), Nuevo remito con autoguardado y detalle (entregas 19 y 20). Datos siempre reales de la API, no mocks. Pendientes de
+rediseño: Productos, Unidades de medida,
+Tareas (todavía con el estilo viejo y `components/Nav.tsx`).
 
 Cómo se trabaja el rediseño (validado con Martín, mantenerlo):
 - Una pantalla por vez; al terminar, probarla en el navegador en 375 / 768 /
@@ -77,11 +79,12 @@ Entorno local (Windows): Postgres 17 nativo (servicio de Windows, arranca
 solo). En Git Bash hay que anteponer `export PATH="/c/Program Files/nodejs:$PATH"`.
 Backend `npm run start:dev` (tarda ~25s en quedar arriba), frontend
 `cd frontend && npm run dev` (puerto 3001). Usuario de prueba
-`test@gestioya.local` / `password123`.
+`test@gestioya.local` / `password123` (empresa A) y `test-b@gestioya.local` /
+`password123` (empresa B, para probar aislamiento).
 
 ## Próximo paso
-Seguir el rediseño con Remitos (listado, nuevo con líneas dinámicas, detalle),
-después Productos, Unidades de medida y Tareas. Next.js ya está en 16.3.7
+Remitos terminado (entregas 18-20). Seguir el rediseño con Productos,
+Unidades de medida y Tareas. Next.js ya está en 16.3.7
 (parche de seguridad, ver NOTAS.md entrega 17).
 Pendiente aparte, no bloqueante: envío real de notificaciones por
 email/SMS/WhatsApp (necesita decidir proveedor). Ver NOTAS.md entrega 13

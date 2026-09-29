@@ -7,6 +7,7 @@ import {
 import { Prisma } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 import { PrismaService } from '../prisma/prisma.service';
+import { TenantContext } from '../common/tenant/tenant-context';
 import { ObligacionesService } from '../cuentas/obligaciones.service';
 import { CreateRemitoDto } from './dto/create-remito.dto';
 import { UpdateRemitoDto } from './dto/update-remito.dto';
@@ -41,7 +42,6 @@ export class RemitosService {
       // empresaId lo inyecta tenant.extension.ts en runtime, ver
       // entidades.service.ts para el mismo patrón.
       data: {
-        numero: dto.numero,
         tipo: dto.tipo,
         // new Date(...), no el string crudo: class-validator@IsDateString
         // acepta fechas sin horario, pero Prisma exige un datetime ISO
@@ -63,17 +63,34 @@ export class RemitosService {
       estado: query.estado,
       entidadId: query.entidadId,
     };
+    const q = query.q?.trim();
+    if (q) {
+      where.OR = [
+        { numero: { contains: q, mode: 'insensitive' } },
+        { entidad: { nombre: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
 
-    const [data, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       this.prisma.db.remito.findMany({
         where,
-        include: { entidad: true },
+        include: { entidad: true, detalles: { select: { subtotal: true } } },
         orderBy: { fecha: 'desc' },
         skip: query.skip,
         take: query.take,
       }),
       this.prisma.db.remito.count({ where }),
     ]);
+
+    // Total y cantidad de líneas para el listado, calculados desde los
+    // detalles (no hay un campo total guardado en Remito).
+    const data = rows.map(({ detalles, ...remito }) => ({
+      ...remito,
+      lineas: detalles.length,
+      total: detalles
+        .reduce((acc, d) => acc.add(d.subtotal), new Prisma.Decimal(0))
+        .toString(),
+    }));
 
     return { data, total, skip: query.skip, take: query.take };
   }
@@ -111,7 +128,6 @@ export class RemitosService {
       await tx.remito.update({
         where: { id },
         data: {
-          numero: dto.numero,
           tipo: dto.tipo,
           fecha: dto.fecha ? new Date(dto.fecha) : undefined,
           entidadId: dto.entidadId,
@@ -153,9 +169,26 @@ export class RemitosService {
     if (remito.detalles.length === 0) {
       throw new BadRequestException('No se puede emitir un remito sin detalles');
     }
+    // Decisión de Martín (entrega 19): un borrador puede no tener entidad,
+    // pero todo remito emitido tiene que quedar asentado en una cuenta
+    // corriente. Los emitidos viejos sin entidad quedan como están.
+    if (!remito.entidadId) {
+      throw new BadRequestException('Elegí a quién va el remito antes de emitirlo');
+    }
 
     return this.prisma.db.$transaction(async (tx) => {
-      await tx.remito.update({ where: { id }, data: { estado: 'emitido' } });
+      const numero = await siguienteNumeroRemito(tx);
+
+      // updateMany con estado 'borrador' en el where: si otra request emitió
+      // este mismo remito entre el findOne de arriba y acá, no se pisa --
+      // se corta y la transacción revierte también el número tomado.
+      const { count } = await tx.remito.updateMany({
+        where: { id, estado: 'borrador' },
+        data: { estado: 'emitido', numero },
+      });
+      if (count === 0) {
+        throw new ConflictException('Solo se puede emitir un remito en estado borrador');
+      }
 
       if (remito.entidadId) {
         const total = remito.detalles.reduce((sum, d) => sum + d.subtotal.toNumber(), 0);
@@ -166,7 +199,7 @@ export class RemitosService {
             entidadId: remito.entidadId,
             monto: total,
             tipo: remito.tipo === 'S' ? 'venta' : 'compra',
-            descripcion: `Remito ${remito.numero ?? remito.id.slice(0, 8)}`,
+            descripcion: `Remito ${numero}`,
             direccion: remito.tipo === 'S' ? 'a_cobrar' : 'a_pagar',
             remitoId: remito.id,
           },
@@ -222,6 +255,25 @@ export class RemitosService {
     });
   }
 
+  /**
+   * Borrado físico, solo de borradores (decisión de Martín, entrega 19: el
+   * borrador se autoguarda, y "Descartar" tiene que poder borrarlo sin dejar
+   * un anulado en el listado). Un borrador no tiene número ni movimientos en
+   * la cuenta corriente, así que no se pierde trazabilidad; el borrado queda
+   * igual en la auditoría (AuditInterceptor). Emitidos y anulados siguen sin
+   * poder borrarse: para eso está anular.
+   */
+  async eliminarBorrador(id: string) {
+    const { count } = await this.prisma.db.remito.deleteMany({
+      where: { id, estado: 'borrador' },
+    });
+    if (count === 0) {
+      await this.findOne(id); // 404 si no existe (o es de otra empresa)
+      throw new ConflictException('Solo se puede descartar un remito en borrador');
+    }
+    return { id, eliminado: true };
+  }
+
   async generatePdf(id: string): Promise<Buffer> {
     const remito = await this.findOne(id);
     return buildRemitoPdf(remito);
@@ -269,6 +321,37 @@ function toDetalleData(d: CreateDetalleRemitoDto) {
   };
 }
 
+// Punto de venta fijo mientras haya una sola sucursal (ver modelo Numerador).
+const PUNTO_VENTA_REMITOS = 1;
+
+/**
+ * Toma el próximo número de remito de la empresa actual, "0001-00000015".
+ * Un solo INSERT ... ON CONFLICT DO UPDATE: Postgres bloquea la fila del
+ * numerador hasta que termina la transacción, así que dos emisiones
+ * simultáneas nunca toman el mismo número, y si la emisión falla el
+ * incremento se revierte con el resto (no quedan huecos).
+ *
+ * SQL crudo: la extensión de tenant no aplica acá, por eso empresaId se toma
+ * explícitamente del contexto (fail-closed igual que la extensión).
+ */
+async function siguienteNumeroRemito(
+  tx: Pick<Prisma.TransactionClient, '$queryRaw'>,
+): Promise<string> {
+  const empresaId = TenantContext.getEmpresaId();
+  if (!empresaId) {
+    throw new Error('TenantContext sin empresaId al numerar un remito');
+  }
+
+  const [{ ultimoNumero }] = await tx.$queryRaw<{ ultimoNumero: number }[]>`
+    INSERT INTO "Numerador" ("id", "empresaId", "tipoComprobante", "puntoVenta", "ultimoNumero")
+    VALUES (gen_random_uuid()::text, ${empresaId}, 'remito', ${PUNTO_VENTA_REMITOS}, 1)
+    ON CONFLICT ("empresaId", "tipoComprobante", "puntoVenta")
+    DO UPDATE SET "ultimoNumero" = "Numerador"."ultimoNumero" + 1
+    RETURNING "ultimoNumero"`;
+
+  return `${String(PUNTO_VENTA_REMITOS).padStart(4, '0')}-${String(ultimoNumero).padStart(8, '0')}`;
+}
+
 type RemitoConDetalle = Prisma.RemitoGetPayload<{ include: typeof INCLUDE_DETALLE }>;
 
 const PDF_COLS = {
@@ -290,7 +373,7 @@ function buildRemitoPdf(remito: RemitoConDetalle): Promise<Buffer> {
     doc.moveDown(0.3);
     doc.fontSize(10);
     doc.text(
-      `Tipo: ${remito.tipo === 'E' ? 'Entrada' : 'Salida'}    Número: ${remito.numero ?? remito.id.slice(0, 8)}`,
+      `Tipo: ${remito.tipo === 'E' ? 'Entrada' : 'Salida'}    Número: ${remito.numero ?? 'sin número (borrador)'}`,
     );
     doc.text(
       `Fecha: ${remito.fecha.toLocaleDateString('es-AR')}    Estado: ${remito.estado}`,

@@ -580,8 +580,112 @@ Martín prefiere no actualizar el stack en medio del desarrollo. Se hizo igual p
 
 ## Observado (no causado por la actualización)
 
-Al abrir `/entidades` por URL directa con el panel del navegador de Claude **oculto**, la página se queda en "Cargando…" (entrando desde el menú carga bien). Pasa igual con 16.3.0. Causa probable: con la pestaña oculta el navegador no ejecuta `requestAnimationFrame`, y React espera ese paso para revelar el contenido de un `<Suspense>`. Falta confirmarlo con el panel visible.
+Al abrir `/entidades` por URL directa con el panel del navegador de Claude **oculto**, la página se queda en "Cargando…" (entrando desde el menú carga bien). Pasa igual con 16.3.0. Causa: con la pestaña oculta el navegador no ejecuta `requestAnimationFrame`, y React espera ese paso para revelar el contenido de un `<Suspense>`. **Confirmado que no es un bug**: con el panel visible, `/entidades` y `/remitos` cargan bien por URL directa. Para probar con el panel oculto, entrar a la pantalla desde el menú.
 
 ## Siguiente paso sugerido
 
 Remitos (listado, nuevo con líneas dinámicas, detalle).
+
+---
+
+# Entrega 18: Remitos — listado rediseñado + numeración automática
+
+## Qué incluye esto
+
+- **Listado de Remitos** (`/remitos`) con el diseño "Mostrador" (no estaba en el handoff; sigue el patrón de Entidades): resumen "N emitidos · N borradores sin emitir · N anulados", buscador por entidad o número, chips por estado con contador (respetan el filtro Salidas/Entradas), selector Todos / Salidas / Entradas. Filtros en la URL. Mobile/tablet: tarjetas; desktop: tabla (Remito, Entidad, Fecha, Estado, Total). Salida = flecha ↗ verde, Entrada = ↙ terracota. Anulados atenuados con total tachado. Estados cargando / error / vacío / sin resultados.
+- Backend: `GET /remitos` devuelve `total` y `lineas` de cada remito (calculados desde los detalles) y acepta `?q=` (número o nombre de entidad).
+- **Numeración automática de remitos**: formato `PPPP-NNNNNNNN` (punto de venta - número, `0001-00000015`), correlativa por empresa. Modelo nuevo `Numerador` (empresa + tipo de comprobante + punto de venta → último número), `@@unique([empresaId, numero])` en `Remito`. Migración `20260929120000_remito_numeracion`, que numeró los emitidos y anulados existentes por fecha (los anulados se numeraron todos: no se puede saber si alguno se anuló siendo borrador).
+- `numero` ya no se acepta desde el cliente en `POST`/`PATCH /remitos` (lo ignora la ValidationPipe).
+
+## Decisiones (confirmadas con Martín)
+
+- `numero` es distinto de `id`: `id` sigue siendo la clave interna de todas las relaciones; `numero` es la referencia que usan el comerciante y su cliente.
+- **El número se asigna al emitir**, no al crear el borrador: descartar borradores no deja huecos. Un borrador se muestra como "Sin número". Anular conserva el número.
+- **Contador en tabla aparte**, incrementado con un solo `INSERT ... ON CONFLICT DO UPDATE ... RETURNING` dentro de la transacción de emisión: dos emisiones simultáneas nunca toman el mismo número y si la emisión falla el incremento se revierte. Es SQL crudo, así que `empresaId` se toma explícitamente de `TenantContext` (fail-closed). `Numerador` está en el allowlist de `tenant.extension.ts`.
+- `emitir()` ahora usa `updateMany` con `estado: 'borrador'` en el where, para que dos requests emitiendo el mismo remito no lo emitan dos veces.
+- Punto de venta fijo en `0001` (una sucursal). Queda preparado para varias sucursales o para Facturación. No da validez fiscal ante AFIP.
+
+## Probado contra el servidor real y Postgres
+
+Borrador creado mandando `numero: "TRUCHO"` → queda sin número. Emitir → `0001-00000006`, y la obligación generada dice "Remito 0001-00000006". Re-emitir → 409 sin consumir número. Tres emisiones simultáneas → `0001-00000007/8/9`, sin repetidos. Anular conserva el número. Búsqueda por número. Listado en el navegador en 375/768/1280px; la cuenta corriente muestra "Remito N.º 0001-…". No se pudo probar en vivo con la segunda empresa (la contraseña de `test-b@gestioya.local` ya no es la del seed); el aislamiento sale de que el contador se busca por el `empresaId` de la sesión.
+
+## Pendiente
+
+- Quedaron 4 remitos de prueba anulados (`0001-00000006` a `0001-00000009`) en la base de desarrollo.
+- Textos históricos guardados antes de este cambio siguen con el id corto (ej. "Compensa: Remito 7c1eb261" en la cuenta corriente, descripciones de obligaciones viejas).
+
+## Siguiente paso sugerido
+
+Nuevo remito (pantalla 4 del handoff: líneas dinámicas, aside con total e impacto en la cuenta corriente) y después el detalle.
+
+---
+
+# Entrega 19: Nuevo remito (líneas dinámicas) con autoguardado
+
+## Qué incluye esto
+
+- **Editor de remito** (`components/remitos/RemitoEditor.tsx`, pantalla 4 del handoff), el mismo para `/remitos/nuevo` y para abrir un borrador en `/remitos/[id]`:
+  - Header: "Remitos › Nuevo/Borrador", título según tipo ("Remito de salida/entrada"), badge Borrador, indicador "Se guarda solo · HH:MM" (o "Guardando…", o el error con "Reintentar"). Acciones: Descartar, Guardar borrador, Emitir.
+  - Cabecera: entidad con buscador (nombre o CUIT, con avatar y roles), Salida/Entrada, fecha.
+  - Líneas como tarjetas: producto con buscador (nombre o SKU), cantidad con la unidad del producto (adentro del campo si es corta, debajo si es larga: "en cajon 1.5"), precio unitario, subtotal calculado y ✕. Al elegir producto se completa el precio: de venta en una salida, de costo en una entrada (si el producto tiene costo). "Agregar otro producto" pone el cursor en el producto de la línea nueva. Quitar no pide confirmación.
+  - Resumen: total, tarjeta "Cuando toques 'Emitir'" con la cuenta de la entidad hoy → después, aviso ámbar si la entidad tiene deuda vencida en esa dirección (no bloquea), Observaciones deshabilitado.
+  - Emitir deshabilitado hasta que esté completo, con el motivo escrito ("Para emitir falta elegir a quién le entregás, completar la línea 2."). Confirmación con el total y cómo queda la cuenta.
+  - Responsive: ≥1280 el resumen va a la derecha; abajo de eso va debajo del contenido, con una barra fija abajo con el total + Emitir.
+- `components/ui/SearchCombo.tsx`: buscador con lista (teclado: flechas, Enter, Escape; sin acentos ni mayúsculas).
+- `components/remitos/RemitoPantalla.tsx`: decide editor (nuevo/borrador) o detalle (emitido/anulado). El detalle todavía es la vista vieja, movida a `components/remitos/RemitoDetalleViejo.tsx`.
+- `formatMontoExacto`: muestra centavos solo si los hay (un subtotal de $ 27,60 no aparece como $ 28). También se usa en el listado.
+- Backend: `DELETE /remitos/:id` (solo borradores) y `emitir()` exige entidad.
+
+## Decisiones (confirmadas con Martín)
+
+- **Autoguardado + "Descartar" borra**: el borrador se crea en la base apenas hay una línea completa (el backend exige al menos una) y se actualiza 2 segundos después de cada cambio. Desde ahí la dirección pasa a `/remitos/[id]`, así que recargar sigue editando el mismo. "Descartar" (con confirmación) lo borra de verdad. Solo se pueden borrar borradores: no tienen número ni movimientos en la cuenta corriente, y el borrado queda en la auditoría. Emitidos y anulados siguen sin poder borrarse. Esto cambia la decisión de la entrega 7 ("sin DELETE físico") solo para borradores.
+- **Entidad obligatoria para emitir**, no para guardar el borrador. Los emitidos viejos sin entidad quedan como están.
+- Los guardados se encadenan (nunca dos a la vez) para que el primero cree el remito y los siguientes lo actualicen. Si se cierra la pestaña con cambios sin guardar, el navegador avisa.
+- La fecha se manda con la hora actual: solo "2026-09-29" el backend lo toma como medianoche UTC, que en Argentina es el día anterior.
+- Entidades y productos se cargan hasta 100 activos y se filtran en el navegador. Si alguna empresa supera eso, hay que pasar la búsqueda al servidor.
+
+## Probado en el navegador contra el backend real
+
+Alta con buscador de entidad y producto, autoguardado (la dirección cambia al borrador), recarga que reabre el borrador con lo cargado, segunda línea con foco automático, aviso de vencidos ("coca cola ya te debe $ 29.000 vencidos hace 37 días"), emitir con confirmación → `0001-00000010` y `0001-00000011` con la obligación en la cuenta de Cliente E2E, pasa solo al detalle. Descartar un borrador lo borra de la base (y sus líneas) y queda en la auditoría. Por API: emitir sin entidad → 400 sin gastar número; borrar un emitido → 409. Revisado en 375/768/1280px.
+
+## Bugs encontrados y corregidos durante las pruebas
+
+- Escribir en el buscador con el campo todavía enfocado pegaba el texto al nombre ya elegido ("coca colacliente e2e"). Ahora lo elegido se muestra como texto de fondo y lo que se escribe arranca una búsqueda nueva.
+- Después de emitir no cambiaba a la vista de detalle (navegaba a la misma dirección). Se resolvió con `RemitoPantalla`.
+- La lista del buscador quedaba tapada por la barra fija; el botón Emitir del header aparecía en celular (`hidden` perdía contra `inline-flex`).
+
+## Pendiente
+
+- Observaciones: no existe el campo en `Remito`; está visible pero deshabilitado.
+- Remitos de prueba emitidos a Cliente E2E: `0001-00000010` ($ 43.000) y `0001-00000011` ($ 100). Suben "Te deben".
+
+## Siguiente paso sugerido
+
+Detalle de remito rediseñado (emitido/anulado: badge, líneas, impacto en la cuenta corriente, PDF, anular).
+
+---
+
+# Entrega 20: Detalle de remito (emitido / anulado) — cierra el rediseño de Remitos
+
+## Qué incluye esto
+
+- **Detalle** (`components/remitos/RemitoDetalle.tsx`), para emitidos y anulados (los borradores abren el editor, entrega 19). No estaba en el handoff; sigue el lenguaje del editor en modo lectura:
+  - Header: "Remitos › N.º …", "Remito N.º 0001-00000011" + badge de estado, "↗ Salida · 29 sep 2026". Acciones: Ver PDF y Anular (solo si está emitido).
+  - Datos: a quién se entregó / quién entregó (con link a su cuenta corriente), tipo, fecha.
+  - Productos: tarjetas en celular, tabla en escritorio (producto + SKU, cantidad con unidad, precio, subtotal).
+  - Resumen: total del remito; tarjeta "En la cuenta corriente" con el estado de la deuda generada (pendiente / parcial / cancelada / vencida / anulada), cobrado o pagado, lo que falta, "Registrar cobro/pago" (abre el modal en la cuenta corriente) y "Ver cuenta de …". Remitos sin entidad, o anteriores a la entrega 13, dicen que no generaron movimientos.
+  - Anulado: aviso "Este remito está anulado. La deuda que había generado también se anuló…", total y subtotales tachados.
+  - Anular: confirmación que explica que también se anula la deuda (compensada con un ajuste) y que el número queda usado. Si la deuda ya tiene pagos aplicados, no deja anular y explica por qué, con acceso a la cuenta corriente (mismo criterio que el backend, que igual lo bloquea con 409).
+- **Ver PDF abre en pestaña nueva** (`openRemitoPdf`, como pide el handoff), en vez de descargarse. Si el navegador bloquea la pestaña, se descarga.
+- Limpieza: se borró la vista vieja del detalle y `downloadRemitoPdf`/`updateRemitoDetalles` (sin uso). `Remito.obligacionGenerada` tiene su propio tipo (viene cruda de Prisma, sin montoPagado calculado).
+- Empresa de prueba B creada en esta base (`scripts/seed-test2.ts`; no existía en esta máquina): `test-b@gestioya.local` / `password123`.
+
+## Probado
+
+- En el navegador contra el backend real: detalle de un emitido (deuda pendiente con Registrar cobro), anular desde el detalle → pasa a anulado en el momento con el aviso de compensación, remito con pagos aplicados → no deja anular y explica, remito sin deuda generada, 375 y 1280px sin scroll horizontal. El PDF se genera (200); en el panel de Claude la pestaña nueva está bloqueada y cae en la descarga, en un navegador común abre pestaña.
+- Numeración por empresa con la empresa B: su primer remito salió `0001-00000001` mientras A iba por `0001-00000011`; B no ve, no abre (404) ni borra (404) remitos de A.
+- `next build` y `tsc` del backend sin errores.
+
+## Siguiente paso sugerido
+
+Commit de todo Remitos (entregas 18 a 20). Después: Productos, Unidades de medida y Tareas.

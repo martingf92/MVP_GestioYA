@@ -16,6 +16,7 @@ const TENANT_SCOPED_MODELS = new Set([
   'Producto',
   'UnidadMedida',
   'Remito',
+  'Numerador',
   'CuentaCorriente',
   'Obligacion',
   'Pago',

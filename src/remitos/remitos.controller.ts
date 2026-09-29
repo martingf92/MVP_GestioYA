@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -48,6 +49,11 @@ export class RemitosController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateRemitoDto) {
     return this.remitosService.update(id, dto);
+  }
+
+  @Delete(':id')
+  eliminarBorrador(@Param('id') id: string) {
+    return this.remitosService.eliminarBorrador(id);
   }
 
   @Post(':id/emitir')

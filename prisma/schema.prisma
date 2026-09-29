@@ -34,6 +34,7 @@ model Empresa {
   tareas            Tarea[]
   logs              LogAccion[]
   logsError         LogError[]
+  numeradores       Numerador[]
 }
 
 // ============================================================
@@ -212,6 +213,10 @@ model Remito {
   id        String   @id @default(uuid())
   empresaId String
   empresa   Empresa  @relation(fields: [empresaId], references: [id])
+  // Número visible del comprobante, "PPPP-NNNNNNNN" (punto de venta -
+  // número), correlativo por empresa. Lo asigna el servidor al emitir (ver
+  // RemitosService.emitir): un borrador no tiene número, así descartar
+  // borradores no deja huecos. Distinto de `id`, que es la clave interna.
   numero    String?
   tipo      String // 'E' = entrada | 'S' = salida
   fecha     DateTime @default(now())
@@ -227,6 +232,7 @@ model Remito {
   // tener que cargar la obligación a mano por separado.
   obligacionGenerada Obligacion?
 
+  @@unique([empresaId, numero])
   @@index([empresaId])
   @@index([empresaId, fecha])
 }
@@ -240,6 +246,22 @@ model DetalleRemito {
   cantidad       Decimal  @db.Decimal(14, 3)
   precioUnitario Decimal  @db.Decimal(14, 2)
   subtotal       Decimal  @db.Decimal(14, 2)
+}
+
+// Último número usado por empresa, tipo de comprobante y punto de venta.
+// Tabla aparte (y no un MAX(numero) al emitir) para que dos emisiones
+// simultáneas nunca tomen el mismo número: el incremento es una sola
+// sentencia atómica en Postgres. Hoy solo "remito" con punto de venta 1;
+// queda preparado para facturas o más sucursales.
+model Numerador {
+  id              String  @id @default(uuid())
+  empresaId       String
+  empresa         Empresa @relation(fields: [empresaId], references: [id])
+  tipoComprobante String // 'remito'
+  puntoVenta      Int     @default(1)
+  ultimoNumero    Int     @default(0)
+
+  @@unique([empresaId, tipoComprobante, puntoVenta])
 }
 
 // ============================================================

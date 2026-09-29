@@ -14,6 +14,11 @@ export class ListRemitosQueryDto {
   @IsString()
   entidadId?: string;
 
+  // Búsqueda libre por nombre de la entidad o número del remito.
+  @IsOptional()
+  @IsString()
+  q?: string;
+
   @IsOptional()
   @Type(() => Number)
   @IsInt()

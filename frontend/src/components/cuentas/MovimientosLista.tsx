@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Banknote, FileText, LucideIcon, ReceiptText, Undo2, FilePlus2 } from 'lucide-react';
 import { MovimientoCuenta } from '@/lib/api';
-import { formatFechaPartes, formatMontoConSigno, formatMonto } from '@/lib/format';
+import { formatFechaPartes, formatMontoConSigno, formatMonto, remitoTitulo } from '@/lib/format';
 
 const PAGINA = 10;
 
@@ -31,11 +31,10 @@ function presentar(m: MovimientoCuenta): Presentacion {
   const origen = m.origen;
 
   if (origen?.tipo === 'remito' && origen.remito) {
-    const numero = origen.remito.numero ?? origen.remito.id.slice(0, 8);
     return {
       icon: FileText,
       tono: 'bg-canvas text-ink-soft',
-      titulo: `Remito ${numero}`,
+      titulo: `Remito ${remitoTitulo(origen.remito)}`,
       detalle: (
         <>
           {monto >= 0 ? 'Generó una deuda a cobrar' : 'Generó una deuda a pagar'} ·{' '}

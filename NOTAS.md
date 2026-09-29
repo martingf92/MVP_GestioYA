@@ -524,7 +524,7 @@ Martín eligió una dirección visual con Claude Design ("Mostrador": cálida, f
 - Pantallas sin rediseñar todavía: Cuentas (Obligaciones + Pagos + cuenta corriente unificadas), Remitos (listado, nuevo con líneas dinámicas, detalle), Productos, Unidades de medida, Tareas.
 - La obligación "mercadería semanal" ($50.000, gasto general) quedó como `a_cobrar` por default porque se cargó antes de que existiera `direccion` — suma a "Te deben" en el dashboard. Corregir anulándola y volviéndola a cargar como "Les debemos".
 - Fecha de baja de una entidad: el diseño muestra "Dada de baja el DD/MM", pero el backend solo guarda `activo` (sin fecha).
-- `npm audit` del frontend: Next.js 16.3.0 tiene un aviso crítico (se corrige con 16.3.6), preexistente — pendiente de actualizar con OK de Martín.
+- ~~`npm audit` del frontend: Next.js 16.3.0 con aviso crítico~~ — resuelto en la entrega 17 (Next.js 16.3.7).
 
 ## Siguiente paso sugerido
 
@@ -560,3 +560,28 @@ El breakpoint propio `nav:` estaba en px (835px) y los de Tailwind en rem: con u
 ## Siguiente paso sugerido
 
 Remitos (listado, nuevo con líneas dinámicas — pantalla 4 del handoff —, detalle). Después: Productos, Unidades de medida, Tareas.
+
+---
+
+# Entrega 17: Next.js 16.3.0 → 16.3.7 (parche de seguridad)
+
+## Qué incluye esto
+
+- `frontend/package.json`: `next` y `eslint-config-next` fijados en `16.3.7` (versión exacta, sin `^`). `npm audit fix` subió además `sharp` (0.35.5, dependencia de Next) y `js-yaml` (4.3.2, dependencia de ESLint). `npm audit` queda en 0 vulnerabilidades.
+- Se corrigieron dos avisos críticos de 16.3.0: ejecución remota de código sin autenticación en servidores Windows (aplica a `next dev` en la máquina de desarrollo, que escucha en toda la red local) y en el optimizador de imágenes con archivos AVIF (aplica también a producción).
+
+## Decisión
+
+Martín prefiere no actualizar el stack en medio del desarrollo. Se hizo igual porque es un parche dentro de la misma versión (16.3.x, solo arreglos, sin cambios de API), con un aviso crítico de seguridad, y hacerlo ahora implica volver a probar solo 4 pantallas rediseñadas. Los saltos de versión grande (Next 17, Prisma 7, etc.) siguen con el criterio de no tocarlos durante el desarrollo sin evaluarlos antes.
+
+## Probado
+
+`npm run build` compila sin errores. Probado en el navegador contra el backend real: Login, Inicio, Entidades, Cuentas y el Remitos viejo cargan datos reales, sin errores de consola. Los 17 errores de `npm run lint` (`react-hooks/set-state-in-effect`) ya estaban antes: el plugin que los marca no cambió con la actualización.
+
+## Observado (no causado por la actualización)
+
+Al abrir `/entidades` por URL directa con el panel del navegador de Claude **oculto**, la página se queda en "Cargando…" (entrando desde el menú carga bien). Pasa igual con 16.3.0. Causa probable: con la pestaña oculta el navegador no ejecuta `requestAnimationFrame`, y React espera ese paso para revelar el contenido de un `<Suspense>`. Falta confirmarlo con el panel visible.
+
+## Siguiente paso sugerido
+
+Remitos (listado, nuevo con líneas dinámicas, detalle).

@@ -81,8 +81,8 @@ Backend `npm run start:dev` (tarda ~25s en quedar arriba), frontend
 
 ## Próximo paso
 Seguir el rediseño con Remitos (listado, nuevo con líneas dinámicas, detalle),
-después Productos, Unidades de medida y Tareas. Decisión pendiente de Martín:
-subir Next.js 16.3.0 → 16.3.6 (aviso de seguridad crítico de `npm audit`).
+después Productos, Unidades de medida y Tareas. Next.js ya está en 16.3.7
+(parche de seguridad, ver NOTAS.md entrega 17).
 Pendiente aparte, no bloqueante: envío real de notificaciones por
 email/SMS/WhatsApp (necesita decidir proveedor). Ver NOTAS.md entrega 13
 para lo último: Remitos ahora generan Obligación automática en Cuenta

@@ -714,3 +714,27 @@ API: crear con observaciones (recorta espacios), editar, "   " → null, 501 car
 
 - Un total grande ("$ 914.764,50") se partía en dos renglones: el ancho ahora se mide.
 - El total caía solo en una hoja nueva: el espacio reservado para el pie era mayor que el necesario.
+
+---
+
+# Entrega 22: Productos rediseñado
+
+## Qué incluye esto
+
+- **Listado** (`/productos`, no estaba en el handoff; sigue el patrón de Entidades): resumen "N activos · N dados de baja", link a Unidades de medida, "Nuevo producto". Buscador por nombre o SKU, chips Activos / Dados de baja / Todos (default Activos), filtros en la URL. Celular y tablet: tarjetas (nombre, SKU, unidad, precio, margen); escritorio: tabla (Producto, Unidad, Precio de venta, Costo, Margen, editar). Dados de baja atenuados y tachados. Estados cargando / error / vacío / sin resultados. Si no hay unidades de medida, aviso con link y "Nuevo producto" deshabilitado.
+- **Alta y edición en ventana** (la pantalla vieja no permitía editar): nombre, SKU, unidad, precio de venta, costo. Muestra el margen en vivo ("Margen 31%: ganás $ 1.100 por KG") o avisa si se vende bajo costo (ícono + texto en rojo). En edición: "Dar de baja" o "Reactivar". `?nuevo=1` abre el alta directo.
+- **Margen**: (precio − costo) / precio, calculado al mostrar, no guardado. Sin costo cargado se muestra "—".
+- Backend: `GET /productos?q=` busca por nombre o SKU. SKU vacío se guarda como null (antes "" hacía chocar a dos productos sin SKU contra el único por empresa).
+
+## Decisiones (confirmadas con Martín)
+
+- Alcance: listado + alta/edición. Sin ficha por producto (historial de remitos) por ahora.
+- **Stock mínimo oculto** hasta que se defina el manejo de stock (GESTIOYA.md sección 14): el campo sigue en la base, pero pedir un mínimo sin stock confundiría.
+
+## Probado
+
+API: dos productos sin SKU conviven, SKU repetido → 409, búsqueda por SKU, editar SKU a vacío, baja y reactivación. Navegador contra el backend real: listado en 629/768/1280px sin scroll horizontal, edición con cálculo de margen en vivo, alta con validación (errores con ícono) y producto creado, filtro dados de baja con "Reactivar", búsqueda "yer-". Quedaron 3 productos de prueba dados de baja ("Prueba con/sin SKU") y "Yerba mate 1 kg" activo.
+
+## Siguiente paso sugerido
+
+Unidades de medida y después Tareas.

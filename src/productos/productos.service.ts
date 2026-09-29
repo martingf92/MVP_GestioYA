@@ -24,6 +24,16 @@ function isNotFound(error: unknown): boolean {
   );
 }
 
+/**
+ * SKU vacío => null. Con "" guardado, dos productos sin SKU chocarían contra
+ * @@unique([empresaId, sku]); null no choca con otro null (mismo criterio que
+ * Entidad.documentoNro, entrega 4).
+ */
+function normalizarSku(sku?: string): string | null {
+  const s = sku?.trim();
+  return s ? s : null;
+}
+
 @Injectable()
 export class ProductosService {
   constructor(private readonly prisma: PrismaService) {}
@@ -35,7 +45,7 @@ export class ProductosService {
       return await this.prisma.db.producto.create({
         // empresaId lo inyecta tenant.extension.ts en runtime, ver
         // entidades.service.ts para el mismo patrón.
-        data: { ...dto } as unknown as Prisma.ProductoCreateInput,
+        data: { ...dto, sku: normalizarSku(dto.sku) } as unknown as Prisma.ProductoCreateInput,
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -54,6 +64,13 @@ export class ProductosService {
         : undefined,
       activo: query.activo,
     };
+    const q = query.q?.trim();
+    if (q) {
+      where.OR = [
+        { nombre: { contains: q, mode: 'insensitive' } },
+        { sku: { contains: q, mode: 'insensitive' } },
+      ];
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.db.producto.findMany({
@@ -90,7 +107,7 @@ export class ProductosService {
     try {
       return await this.prisma.db.producto.update({
         where: { id },
-        data: dto,
+        data: { ...dto, sku: dto.sku === undefined ? undefined : normalizarSku(dto.sku) },
       });
     } catch (error) {
       if (isNotFound(error)) {

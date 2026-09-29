@@ -353,7 +353,13 @@ export function deleteUnidadMedida(id: string) {
   return request<void>(`/unidades-medida/${id}`, { method: 'DELETE' });
 }
 
-export function listProductos(params?: { nombre?: string; activo?: boolean; skip?: number; take?: number }) {
+export function listProductos(params?: {
+  /** Nombre o SKU. */
+  q?: string;
+  activo?: boolean;
+  skip?: number;
+  take?: number;
+}) {
   return request<{ data: Producto[]; total: number }>(`/productos${queryString(params)}`);
 }
 
@@ -370,6 +376,25 @@ export function createProducto(input: {
   });
 }
 
+/** `sku: ""` lo borra. `activo: true` reactiva uno dado de baja. */
+export function updateProducto(
+  id: string,
+  input: {
+    nombre?: string;
+    sku?: string;
+    unidadMedidaId?: string;
+    precioUnitario?: number;
+    costo?: number;
+    activo?: boolean;
+  },
+) {
+  return request<Producto>(`/productos/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+/** Baja lógica (activo = false); se puede reactivar con updateProducto. */
 export function deleteProducto(id: string) {
   return request<void>(`/productos/${id}`, { method: 'DELETE' });
 }

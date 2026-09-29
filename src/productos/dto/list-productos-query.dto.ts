@@ -6,6 +6,11 @@ export class ListProductosQueryDto {
   @IsString()
   nombre?: string;
 
+  // Búsqueda libre por nombre o SKU.
+  @IsOptional()
+  @IsString()
+  q?: string;
+
   @IsOptional()
   @Transform(({ value }) => value === 'true')
   activo?: boolean;

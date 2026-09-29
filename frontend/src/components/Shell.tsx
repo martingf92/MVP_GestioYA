@@ -25,7 +25,7 @@ import { Avatar } from './ui/Avatar';
 const TABS: { href: string; label: string; icon: LucideIcon; secciones?: string[] }[] = [
   { href: '/', label: 'Inicio', icon: Home },
   { href: '/entidades', label: 'Entidades', icon: Users },
-  { href: '/productos', label: 'Productos', icon: Package },
+  { href: '/productos', label: 'Productos', icon: Package, secciones: ['/productos', '/unidades-medida'] },
   { href: '/remitos', label: 'Remitos', icon: FileText },
   // Obligaciones, Pagos y la cuenta corriente de cada entidad viven dentro
   // de Cuentas (no tienen tab propio, ver README del handoff).

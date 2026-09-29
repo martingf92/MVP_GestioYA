@@ -6,11 +6,13 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { UnidadesMedidaService } from './unidades-medida.service';
 import { CreateUnidadMedidaDto } from './dto/create-unidad-medida.dto';
+import { UpdateUnidadMedidaDto } from './dto/update-unidad-medida.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('unidades-medida')
@@ -26,6 +28,11 @@ export class UnidadesMedidaController {
   @Get()
   findAll() {
     return this.unidadesMedidaService.findAll();
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateUnidadMedidaDto) {
+    return this.unidadesMedidaService.update(id, dto);
   }
 
   @Delete(':id')

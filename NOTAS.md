@@ -738,3 +738,23 @@ API: dos productos sin SKU conviven, SKU repetido → 409, búsqueda por SKU, ed
 ## Siguiente paso sugerido
 
 Unidades de medida y después Tareas.
+
+---
+
+# Entrega 23: Unidades de medida rediseñada
+
+## Qué incluye esto
+
+- **Pantalla** (`/unidades-medida`, vive dentro de Productos: breadcrumb "Productos › Unidades de medida" y la pestaña Productos queda marcada). Lista con el código en una etiqueta de ancho fijo, la descripción y cuántos productos la usan ("La usan 4 productos" / "Ningún producto la usa"). Editar y eliminar por fila. Ancho máximo acotado en escritorio (es una lista corta). Estados cargando / error / vacío.
+- **Alta y edición en ventana**: código (máx. 12 caracteres, se ve al lado de cada cantidad) y descripción. Si se cambia el código de una unidad en uso, avisa que el cambio se ve en todos los productos y remitos, incluso los emitidos.
+- **Eliminar**: con confirmación. Si la usa algún producto (contando los dados de baja), no deja y explica qué hacer, con link a Productos.
+- Backend: `GET /unidades-medida` trae `_count.productos`; `PATCH /unidades-medida/:id` (nuevo, código y descripción, 409 si el código ya existe); código y descripción se guardan sin espacios de más; código con máximo 12 caracteres.
+- El campo `tipo` no se muestra: no tiene un significado definido y nadie lo usa (está vacío en la base).
+
+## Probado
+
+API: listado con cantidad de productos, alta con espacios recortados, código repetido → 409, código de 13 caracteres → 400, edición, editar a un código existente → 409, borrar una unidad en uso → 409, borrar una libre → 204; la unidad "UN" de la empresa B no aparece en la empresa A. Navegador: listado, bloqueo al querer eliminar KG, alta de "LT — Litros" (quedó cargada), 629 y 1280px sin scroll horizontal.
+
+## Siguiente paso sugerido
+
+Tareas (la última pantalla con el estilo viejo; después se puede borrar `components/Nav.tsx`).

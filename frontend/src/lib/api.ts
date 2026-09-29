@@ -36,6 +36,9 @@ export interface UnidadMedida {
   codigo: string;
   descripcion: string;
   tipo: string | null;
+  // Solo en GET /unidades-medida: cuántos productos la usan (incluye dados
+  // de baja). Con productos no se puede borrar.
+  _count?: { productos: number };
 }
 
 export interface Producto {
@@ -349,6 +352,14 @@ export function createUnidadMedida(input: {
   });
 }
 
+export function updateUnidadMedida(id: string, input: { codigo?: string; descripcion?: string }) {
+  return request<UnidadMedida>(`/unidades-medida/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+/** Borrado físico: solo si ningún producto la usa. */
 export function deleteUnidadMedida(id: string) {
   return request<void>(`/unidades-medida/${id}`, { method: 'DELETE' });
 }

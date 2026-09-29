@@ -62,8 +62,8 @@ y esperando el OK de Martín antes de pasar a la siguiente. Hechas: Login,
 Entidades, Inicio (dashboard con gráfico de ingresos/egresos), Cuentas
 (resumen + cuenta corriente por entidad, entregas 15 y 16), listado de
 Remitos (entrega 18, junto con la numeración automática `0001-00000015`
-asignada al emitir), Nuevo remito con autoguardado y detalle (entregas 19 a 21), Productos (entrega 22). Datos siempre reales de la API, no mocks. Pendientes de
-rediseño: Unidades de medida,
+asignada al emitir), Nuevo remito con autoguardado y detalle (entregas 19 a 21), Productos y Unidades de medida (entregas 22 y 23). Datos siempre reales de la API, no mocks. Pendientes de
+rediseño:
 Tareas (todavía con el estilo viejo y `components/Nav.tsx`).
 
 Cómo se trabaja el rediseño (validado con Martín, mantenerlo):
@@ -83,8 +83,8 @@ Backend `npm run start:dev` (tarda ~25s en quedar arriba), frontend
 `password123` (empresa B, para probar aislamiento).
 
 ## Próximo paso
-Remitos (entregas 18-21) y Productos (entrega 22) terminados. Seguir el rediseño con
-Unidades de medida y Tareas. Next.js ya está en 16.3.7
+Remitos (entregas 18-21), Productos y Unidades de medida (22-23) terminados. Sigue
+Tareas, la última pantalla con el estilo viejo. Next.js ya está en 16.3.7
 (parche de seguridad, ver NOTAS.md entrega 17).
 Pendiente aparte, no bloqueante: envío real de notificaciones por
 email/SMS/WhatsApp (necesita decidir proveedor). Ver NOTAS.md entrega 13

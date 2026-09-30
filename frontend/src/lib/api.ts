@@ -241,17 +241,79 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getAccessToken();
+function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return getSessionStorage().getItem(REFRESH_TOKEN_KEY);
+}
 
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
+// Renovación en curso, compartida: si varias requests vencen a la vez se
+// renueva una sola vez (el refresh token rota en cada uso, así que dos
+// renovaciones en paralelo con el mismo token harían fallar a la segunda).
+let renovacion: Promise<boolean> | null = null;
+
+/**
+ * Pide un access token nuevo con el refresh token (30 días, rota en cada
+ * uso; ver AuthService.refresh). true si quedó una sesión válida.
+ */
+function renovarSesion(): Promise<boolean> {
+  if (!renovacion) {
+    renovacion = (async () => {
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) return false;
+      try {
+        const res = await fetch(`${API_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        });
+        if (res.ok) {
+          const data: { accessToken: string; refreshToken: string } = await res.json();
+          const storage = getSessionStorage();
+          storage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
+          storage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
+          return true;
+        }
+        // Otra pestaña pudo haber renovado justo antes con el mismo token
+        // (y rotado): si el guardado cambió, esa renovación sirve.
+        return getRefreshToken() !== refreshToken;
+      } catch {
+        return false;
+      }
+    })().finally(() => {
+      renovacion = null;
+    });
+  }
+  return renovacion;
+}
+
+/**
+ * fetch con el token de la sesión. Si el servidor responde 401 (el access
+ * token dura 45 min), renueva la sesión y reintenta una vez; si no se puede
+ * renovar, borra la sesión y devuelve el 401 (las pantallas mandan al login).
+ */
+async function fetchConSesion(path: string, options: RequestInit = {}): Promise<Response> {
+  const intentar = () => {
+    const token = getAccessToken();
+    return fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
+  };
+
+  const res = await intentar();
+  if (res.status !== 401 || path.startsWith('/auth/') || !getRefreshToken()) return res;
+
+  if (await renovarSesion()) return intentar();
+  clearSession();
+  return res;
+}
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await fetchConSesion(path, options);
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: res.statusText }));
@@ -487,10 +549,7 @@ export function anularRemito(id: string) {
  */
 export async function openRemitoPdf(id: string, filename: string) {
   const ventana = window.open('', '_blank');
-  const token = getAccessToken();
-  const res = await fetch(`${API_URL}/remitos/${id}/pdf`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+  const res = await fetchConSesion(`/remitos/${id}/pdf`);
   if (!res.ok) {
     ventana?.close();
     throw new ApiError(res.status, 'No se pudo generar el PDF');

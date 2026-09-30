@@ -83,8 +83,8 @@ Backend `npm run start:dev` (tarda ~25s en quedar arriba), frontend
 `password123` (empresa B, para probar aislamiento).
 
 ## Próximo paso
-Rediseño completo (entregas 15 a 24). Candidatos para seguir: UI de Reportes
-(el backend ya está), refresh automático de sesión (hoy vence a los 45 min),
+Rediseño completo (entregas 15 a 24) y sesión que se renueva sola (entrega 25). Candidatos: UI de Reportes
+(el backend ya está), logout real + tokens en cookies httpOnly,
 envío real de notificaciones. Next.js ya está en 16.3.7
 (parche de seguridad, ver NOTAS.md entrega 17).
 Pendiente aparte, no bloqueante: envío real de notificaciones por

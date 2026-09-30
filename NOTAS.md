@@ -796,3 +796,26 @@ Todas las pantallas del MVP tienen el diseño nuevo: Login, Inicio, Entidades, C
 ## Siguiente paso sugerido
 
 Pendientes anotados en entregas anteriores: UI de Reportes (auditoría, errores, comparativa Proveedor/Acreedor; el backend ya está), refresh automático de sesión (hoy vence a los 45 minutos y hay que volver a entrar), envío real de notificaciones.
+
+---
+
+# Entrega 25: renovación automática de la sesión
+
+## Qué incluye esto
+
+Pendiente desde la entrega 5: el access token dura 45 minutos y el frontend nunca usaba el refresh token (30 días, ya implementado en el backend en la entrega 2), así que a los 45 minutos cualquier pantalla mandaba al login, en medio de lo que se estuviera haciendo.
+
+- `frontend/src/lib/api.ts`: toda llamada pasa por `fetchConSesion`. Si el servidor responde 401, pide un access token nuevo a `POST /auth/refresh`, guarda los dos tokens nuevos (el refresh rota en cada uso) en el mismo almacenamiento que eligió "No cerrar sesión", y repite la llamada una vez. Si no se puede renovar, borra la sesión y devuelve el 401: las pantallas ya mandan al login con eso.
+- **Una sola renovación a la vez**: si varias llamadas vencen juntas (el Inicio hace 5 en paralelo), comparten la misma renovación. Con el token rotando, dos renovaciones en paralelo harían fallar a la segunda y cerrarían la sesión.
+- **Dos pestañas**: si otra pestaña renovó justo antes con el mismo refresh token, se usa lo que dejó guardado en vez de cerrar la sesión.
+- Las rutas `/auth/*` (login con contraseña equivocada, por ejemplo) no se reintentan.
+- El PDF del remito también pasa por `fetchConSesion`.
+
+## Probado en el navegador contra el backend real
+
+Token de acceso reemplazado por uno inválido y carga del Inicio: 10 llamadas con 401 → **una sola** `POST /auth/refresh` (200) → las 10 repetidas con 200, sin pasar por el login, tokens rotados. Con el refresh token también inválido: se borra la sesión y va a `/login`.
+
+## Pendiente
+
+- Los tokens siguen en localStorage/sessionStorage (decisión de la entrega 5, anotada para revisar antes de exponer esto a clientes: cookies httpOnly para el refresh token).
+- "Salir" no llama a `POST /auth/logout`: el refresh token queda válido en el servidor hasta vencer. Conviene sumarlo junto con lo anterior.

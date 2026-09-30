@@ -14,7 +14,7 @@ import {
   Check,
   Users,
 } from 'lucide-react';
-import { Shell } from '@/components/Shell';
+import { Shell, avisarCambioTareas } from '@/components/Shell';
 import { Card } from '@/components/ui/Card';
 import { buttonClasses } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
@@ -117,6 +117,7 @@ export default function InicioPage() {
     setTareas((prev) => prev.map((x) => (x.id === t.id ? { ...x, estado: nuevo } : x)));
     try {
       await updateTareaEstado(t.id, nuevo);
+      avisarCambioTareas();
     } catch {
       setTareas((prev) => prev.map((x) => (x.id === t.id ? t : x)));
     }

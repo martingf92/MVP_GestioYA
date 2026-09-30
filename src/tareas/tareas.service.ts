@@ -14,6 +14,31 @@ const INCLUDE_TAREA = {
 
 type TareaConNotificaciones = Prisma.TareaGetPayload<{ include: typeof INCLUDE_TAREA }>;
 
+const ESTADOS_PENDIENTES = ['abierta', 'en_proceso'];
+const RANGO_PRIORIDAD: Record<string, number> = { alta: 0, normal: 1, baja: 2 };
+
+/**
+ * Dentro de un mismo día de vencimiento, primero las de prioridad alta. Se
+ * ordena en memoria (dentro de la página): en la base la prioridad es texto
+ * y ordenada alfabéticamente quedaría alta < baja < normal.
+ */
+function ordenarPorPrioridad<T extends { fechaVencimiento: Date | null; prioridad: string | null }>(
+  tareas: T[],
+): T[] {
+  const dia = (d: Date | null) =>
+    d ? d.toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }) : '~';
+  const rango = (p: string | null) => RANGO_PRIORIDAD[p ?? 'normal'] ?? 1;
+  return tareas
+    .map((t, i) => ({ t, i }))
+    .sort(
+      (a, b) =>
+        dia(a.t.fechaVencimiento).localeCompare(dia(b.t.fechaVencimiento)) ||
+        rango(a.t.prioridad) - rango(b.t.prioridad) ||
+        a.i - b.i,
+    )
+    .map(({ t }) => t);
+}
+
 function withComputed(t: TareaConNotificaciones) {
   const vencida =
     !!t.fechaVencimiento &&
@@ -64,24 +89,33 @@ export class TareasService {
   }
 
   async findAll(query: ListTareasQueryDto) {
+    const pendientes = query.estado === 'pendientes' || query.vencidas;
     const where: Prisma.TareaWhereInput = {
-      estado: query.estado,
+      estado: pendientes ? { in: ESTADOS_PENDIENTES } : query.estado,
       entidadId: query.entidadId,
       usuarioResponsableId: query.usuarioResponsableId,
+      // Mismo criterio que `vencida` en withComputed().
+      fechaVencimiento: query.vencidas ? { lt: new Date() } : undefined,
     };
 
     const [data, total] = await Promise.all([
       this.prisma.db.tarea.findMany({
         where,
         include: INCLUDE_TAREA,
-        orderBy: { fechaVencimiento: 'asc' },
+        // Sin vencimiento, al final.
+        orderBy: [{ fechaVencimiento: { sort: 'asc', nulls: 'last' } }, { titulo: 'asc' }],
         skip: query.skip,
         take: query.take,
       }),
       this.prisma.db.tarea.count({ where }),
     ]);
 
-    return { data: data.map(withComputed), total, skip: query.skip, take: query.take };
+    return {
+      data: ordenarPorPrioridad(data).map(withComputed),
+      total,
+      skip: query.skip,
+      take: query.take,
+    };
   }
 
   async findOne(id: string) {
@@ -106,17 +140,39 @@ export class TareasService {
     }
 
     try {
-      await this.prisma.db.tarea.update({
-        where: { id },
-        data: {
-          titulo: dto.titulo,
-          descripcion: dto.descripcion,
-          entidadId: dto.entidadId,
-          fechaVencimiento: dto.fechaVencimiento ? new Date(dto.fechaVencimiento) : undefined,
-          prioridad: dto.prioridad,
-          usuarioResponsableId: dto.usuarioResponsableId,
-          estado: dto.estado,
-        },
+      await this.prisma.db.$transaction(async (tx) => {
+        await tx.tarea.update({
+          where: { id },
+          data: {
+            titulo: dto.titulo,
+            descripcion: dto.descripcion,
+            entidadId: dto.entidadId,
+            // null saca el vencimiento; undefined no lo toca.
+            fechaVencimiento:
+              dto.fechaVencimiento === undefined
+                ? undefined
+                : dto.fechaVencimiento === null
+                  ? null
+                  : new Date(dto.fechaVencimiento),
+            prioridad: dto.prioridad,
+            usuarioResponsableId: dto.usuarioResponsableId,
+            estado: dto.estado,
+          },
+        });
+
+        // Recordatorio "app": se reemplaza el pendiente (uno por tarea desde
+        // la UI). Los ya vistos quedan como historial. Notificacion no es
+        // tenant-scoped, pero la tarea ya se validó arriba (update filtrado).
+        if (dto.recordatorio !== undefined) {
+          await tx.notificacion.deleteMany({
+            where: { tareaId: id, canal: 'app', estado: 'pendiente' },
+          });
+          if (dto.recordatorio !== null) {
+            await tx.notificacion.create({
+              data: { tareaId: id, canal: 'app', fechaProgramada: new Date(dto.recordatorio) },
+            });
+          }
+        }
       });
     } catch (error) {
       if (
@@ -166,7 +222,8 @@ export class TareasService {
     };
 
     const tareas = await this.prisma.db.tarea.findMany({
-      where: { notificaciones: { some: filtroNotificacion } },
+      // Una tarea cumplida ya no necesita recordatorio.
+      where: { estado: { in: ESTADOS_PENDIENTES }, notificaciones: { some: filtroNotificacion } },
       include: { notificaciones: { where: filtroNotificacion } },
     });
 
@@ -178,6 +235,26 @@ export class TareasService {
         fechaProgramada: n.fechaProgramada,
       })),
     );
+  }
+
+  /**
+   * "Listo" en el aviso: el recordatorio "app" pasa a `enviada` (para el
+   * canal app, mostrarlo y que la persona lo vea es la entrega) y deja de
+   * aparecer. Notificacion no es tenant-scoped: se valida vía la tarea.
+   */
+  async marcarRecordatorioVisto(notificacionId: string) {
+    const tarea = await this.prisma.db.tarea.findFirst({
+      where: { notificaciones: { some: { id: notificacionId } } },
+      select: { id: true },
+    });
+    if (!tarea) {
+      throw new NotFoundException('Recordatorio no encontrado');
+    }
+    await this.prisma.db.notificacion.update({
+      where: { id: notificacionId },
+      data: { estado: 'enviada', fechaEnviada: new Date() },
+    });
+    return { notificacionId, visto: true };
   }
 
   private async assertEntidadExists(entidadId: string) {

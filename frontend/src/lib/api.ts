@@ -178,7 +178,8 @@ export interface Tarea {
   entidad: Entidad | null;
   fechaVencimiento: string | null;
   estado: 'abierta' | 'en_proceso' | 'cumplida';
-  prioridad: string | null;
+  // null cuenta como normal.
+  prioridad: Prioridad | null;
   vencida: boolean;
   notificaciones: Notificacion[];
 }
@@ -581,8 +582,24 @@ export function anularPago(id: string) {
   return request<Pago>(`/pagos/${id}/anular`, { method: 'POST' });
 }
 
-export function listTareas() {
-  return request<{ data: Tarea[]; total: number }>('/tareas');
+export type Prioridad = 'alta' | 'normal' | 'baja';
+
+export function listTareas(params?: {
+  /** 'pendientes' = abierta + en_proceso. */
+  estado?: Tarea['estado'] | 'pendientes';
+  /** Pendientes con el vencimiento ya pasado. */
+  vencidas?: boolean;
+  skip?: number;
+  take?: number;
+}) {
+  return request<{ data: Tarea[]; total: number }>(`/tareas${queryString(params)}`);
+}
+
+/** "Listo" en un recordatorio: deja de aparecer. */
+export function marcarRecordatorioVisto(notificacionId: string) {
+  return request<{ notificacionId: string; visto: true }>(`/tareas/recordatorios/${notificacionId}/visto`, {
+    method: 'POST',
+  });
 }
 
 export function getRecordatorios() {
@@ -596,11 +613,33 @@ export function createTarea(input: {
   descripcion?: string;
   entidadId?: string;
   fechaVencimiento?: string;
-  prioridad?: string;
+  prioridad?: Prioridad;
   notificaciones?: { canal: 'app' | 'email' | 'sms' | 'whatsapp'; fechaProgramada: string }[];
 }) {
   return request<Tarea>('/tareas', {
     method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+/**
+ * En descripcion, entidadId, fechaVencimiento y recordatorio: null lo saca.
+ * `recordatorio` reemplaza el aviso "app" pendiente de la tarea.
+ */
+export function updateTarea(
+  id: string,
+  input: {
+    titulo?: string;
+    descripcion?: string | null;
+    entidadId?: string | null;
+    fechaVencimiento?: string | null;
+    prioridad?: Prioridad;
+    estado?: Tarea['estado'];
+    recordatorio?: string | null;
+  },
+) {
+  return request<Tarea>(`/tareas/${id}`, {
+    method: 'PATCH',
     body: JSON.stringify(input),
   });
 }

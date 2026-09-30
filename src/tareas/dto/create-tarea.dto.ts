@@ -2,12 +2,17 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsDateString,
+  IsIn,
   IsOptional,
   IsString,
   MinLength,
   ValidateNested,
 } from 'class-validator';
 import { CreateNotificacionDto } from './create-notificacion.dto';
+
+// Decisión de Martín (entrega 24). Sin prioridad (null) cuenta como normal.
+export const PRIORIDADES = ['alta', 'normal', 'baja'] as const;
+export type Prioridad = (typeof PRIORIDADES)[number];
 
 export class CreateTareaDto {
   @IsString()
@@ -27,8 +32,8 @@ export class CreateTareaDto {
   fechaVencimiento?: string;
 
   @IsOptional()
-  @IsString()
-  prioridad?: string;
+  @IsIn(PRIORIDADES)
+  prioridad?: Prioridad;
 
   @IsOptional()
   @IsString()

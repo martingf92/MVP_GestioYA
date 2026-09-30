@@ -758,3 +758,41 @@ API: listado con cantidad de productos, alta con espacios recortados, código re
 ## Siguiente paso sugerido
 
 Tareas (la última pantalla con el estilo viejo; después se puede borrar `components/Nav.tsx`).
+
+---
+
+# Entrega 24: Tareas rediseñada — cierra el rediseño "Mostrador"
+
+## Qué incluye esto
+
+- **Pantalla** (`/tareas`): resumen "N pendientes · N vencidas", "Nueva tarea". Banner de recordatorios (estilo del handoff, ámbar con campana) con cada aviso activo, "Listo" para marcarlo visto y el título para abrir la tarea. Chips Pendientes / Vencidas / Cumplidas / Todas (en la URL). Cada tarea es una tarjeta con casilla para tildarla como hecha (optimista), título, detalle en una línea, y datos con glifo + palabra: "Vence hoy" / "Venció hace 2 días" (rojo, y borde izquierdo rojo) / "Vence el 2 oct", "Prioridad alta/baja", "Aviso activo" / "Aviso el 1 oct", "En proceso", la entidad. `?nueva=1` abre el alta (acceso rápido del Inicio).
+- **Alta y edición en ventana**: qué hay que hacer, detalle, con quién (buscador de entidades, se puede sacar), vence, avisarme (no avisar / el mismo día / 1 día antes / 3 días antes; deshabilitado sin fecha), prioridad (Alta / Normal / Baja) y, al editar, estado (Pendiente / En proceso / Hecha). Eliminar con confirmación en dos pasos.
+- **Badge rojo de vencidas en la pestaña Tareas** del menú (arriba y abajo), como pide el handoff. Se actualiza en el momento al tildar o editar tareas (evento `avisarCambioTareas`), también desde el Inicio.
+- Backend:
+  - `prioridad` solo acepta `alta | normal | baja` (null cuenta como normal). El listado ordena por vencimiento (sin fecha al final) y, dentro del mismo día, por prioridad.
+  - `GET /tareas?estado=pendientes` (abierta + en proceso) y `?vencidas=true`.
+  - `PATCH /tareas/:id` acepta `recordatorio` (reemplaza el aviso "app" pendiente; null lo saca) y null en `fechaVencimiento`, `entidadId` y `descripcion` para sacarlos.
+  - `POST /tareas/recordatorios/:notificacionId/visto`: el aviso pasa a `enviada` y deja de aparecer.
+  - `GET /tareas/recordatorios` ya no muestra avisos de tareas cumplidas.
+- Se borró `components/Nav.tsx` (el menú viejo): ya ninguna pantalla lo usa.
+
+## Decisiones (confirmadas con Martín)
+
+- Prioridad Alta / Normal / Baja.
+- **Elegir cuándo avisar** (el mismo día, 1 o 3 días antes). El aviso aparece desde el comienzo de ese día, en Tareas y en el Inicio. Email/SMS/WhatsApp siguen pendientes de proveedor.
+- El vencimiento se guarda al final del día elegido (hora local): la tarea recién figura vencida cuando termina ese día (antes se guardaba medianoche UTC, que en Argentina es el día anterior a las 21).
+- Al editar, el aviso solo se reemplaza si cambió la fecha o la opción: si no, uno ya marcado como visto volvería a aparecer.
+
+## Probado
+
+API: prioridad inválida → 400; filtro de vencidas; aviso activo vs futuro; mover el aviso a hoy lo hace aparecer; "visto" lo saca (404 con un id ajeno); tarea cumplida no muestra su aviso; sacar vencimiento y aviso; sin fecha al final. Navegador: alta completa (entidad, fecha, aviso, prioridad alta) → aparece en el banner y en la lista; tarea vencida con borde rojo y badge "1" en el menú; "Listo" en un recordatorio; tildar como hecha (contadores y badge se actualizan en el momento); edición recupera "1 día antes" y cambiarlo a "3 días antes" hace aparecer el aviso. 629 y 1280px sin scroll horizontal; `next build` sin errores.
+
+Quedaron 3 tareas de ejemplo: "Llamar a coca cola por la deuda vencida", "Pagar el alquiler del depósito" (vencida), "Pedir mercadería para el fin de semana".
+
+## Con esto termina el rediseño "Mostrador"
+
+Todas las pantallas del MVP tienen el diseño nuevo: Login, Inicio, Entidades, Cuentas, Remitos, Productos, Unidades de medida y Tareas.
+
+## Siguiente paso sugerido
+
+Pendientes anotados en entregas anteriores: UI de Reportes (auditoría, errores, comparativa Proveedor/Acreedor; el backend ya está), refresh automático de sesión (hoy vence a los 45 minutos y hay que volver a entrar), envío real de notificaciones.

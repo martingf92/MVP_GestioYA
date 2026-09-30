@@ -40,6 +40,11 @@ export class TareasController {
     return this.tareasService.getRecordatorios();
   }
 
+  @Post('recordatorios/:notificacionId/visto')
+  marcarRecordatorioVisto(@Param('notificacionId') notificacionId: string) {
+    return this.tareasService.marcarRecordatorioVisto(notificacionId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tareasService.findOne(id);

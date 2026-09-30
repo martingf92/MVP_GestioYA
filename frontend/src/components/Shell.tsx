@@ -18,9 +18,16 @@ import {
   LogOut,
   LucideIcon,
 } from 'lucide-react';
-import { clearSession, getUsuario, Usuario } from '@/lib/api';
+import { clearSession, getUsuario, listTareas, Usuario } from '@/lib/api';
 import { Logo } from './ui/Logo';
 import { Avatar } from './ui/Avatar';
+
+const EVENTO_TAREAS = 'gestioya:tareas-cambiaron';
+
+/** Para que el badge de vencidas del menú se actualice sin navegar. */
+export function avisarCambioTareas() {
+  window.dispatchEvent(new Event(EVENTO_TAREAS));
+}
 
 const TABS: { href: string; label: string; icon: LucideIcon; secciones?: string[] }[] = [
   { href: '/', label: 'Inicio', icon: Home },
@@ -59,8 +66,20 @@ export function Shell({ children }: { children: ReactNode }) {
   const [masAbierto, setMasAbierto] = useState(false);
   const [empresaAbierta, setEmpresaAbierta] = useState(false);
 
+  // Badge rojo de Tareas con la cantidad de vencidas (pedido del handoff).
+  // Shell se monta en cada pantalla, así que se actualiza al navegar.
+  const [tareasVencidas, setTareasVencidas] = useState(0);
+
   useEffect(() => {
     setUsuario(getUsuario());
+    const contar = () =>
+      listTareas({ vencidas: true, take: 1 })
+        .then((r) => setTareasVencidas(r.total))
+        .catch(() => {});
+    contar();
+    // La pantalla de Tareas avisa cuando cambia algo (ver avisarCambioTareas).
+    window.addEventListener(EVENTO_TAREAS, contar);
+    return () => window.removeEventListener(EVENTO_TAREAS, contar);
   }, []);
 
   function handleLogout() {
@@ -176,6 +195,7 @@ export function Shell({ children }: { children: ReactNode }) {
                   ${activo ? 'border-verde font-semibold text-verde' : 'border-transparent font-medium text-ink-soft hover:text-ink'}`}
               >
                 {tab.label}
+                {tab.href === '/tareas' && <BadgeVencidas cantidad={tareasVencidas} />}
               </Link>
             );
           })}
@@ -196,7 +216,10 @@ export function Shell({ children }: { children: ReactNode }) {
               className={`flex min-w-14 flex-1 flex-col items-center justify-center gap-1 no-underline
                 ${activo ? 'font-semibold text-verde' : 'text-ink-soft'}`}
             >
-              <Icon className="h-4 w-4" strokeWidth={activo ? 2 : 1.75} aria-hidden />
+              <span className="relative">
+                <Icon className="h-4 w-4" strokeWidth={activo ? 2 : 1.75} aria-hidden />
+                {tab.href === '/tareas' && <BadgeVencidas cantidad={tareasVencidas} flotante />}
+              </span>
               <span className="text-[11px]">{tab.label}</span>
             </Link>
           );
@@ -225,5 +248,19 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </nav>
     </div>
+  );
+}
+
+/** Círculo rojo con el número de tareas vencidas; nada si no hay. */
+function BadgeVencidas({ cantidad, flotante = false }: { cantidad: number; flotante?: boolean }) {
+  if (cantidad === 0) return null;
+  return (
+    <span
+      className={`inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-neg px-1 text-[10.5px] font-bold text-white
+        ${flotante ? 'absolute -top-2 -right-3' : 'ml-1.5'}`}
+    >
+      {cantidad > 99 ? '99+' : cantidad}
+      <span className="sr-only">{cantidad === 1 ? ' tarea vencida' : ' tareas vencidas'}</span>
+    </span>
   );
 }

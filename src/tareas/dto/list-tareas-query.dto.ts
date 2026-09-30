@@ -1,10 +1,17 @@
-import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class ListTareasQueryDto {
+  // 'pendientes' = abierta + en_proceso.
   @IsOptional()
-  @IsIn(['abierta', 'en_proceso', 'cumplida'])
+  @IsIn(['abierta', 'en_proceso', 'cumplida', 'pendientes'])
   estado?: string;
+
+  // Pendientes con el vencimiento ya pasado.
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  vencidas?: boolean;
 
   @IsOptional()
   @IsString()

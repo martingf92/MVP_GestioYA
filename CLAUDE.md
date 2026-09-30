@@ -54,7 +54,7 @@ cuenta corriente por entidad) y Tareas (con recordatorios) — **el frontend
 ya cubre los 5 módulos del MVP**, todo probado en el navegador contra el
 backend real — ver `NOTAS.md` (entregas 1 a 12) para el detalle completo.
 
-**Rediseño en curso** (dirección visual "Mostrador", ver
+**Rediseño terminado** (dirección visual "Mostrador", ver
 `frontend/diseño/design_handoff_gestioya_mostrador/README.md` y `NOTAS.md`
 entrega 15): se hace pantalla por pantalla, **mobile-first** (muchos
 comerciantes solo usan el celular), validando cada una en 375 / 768 / 1280px
@@ -62,9 +62,9 @@ y esperando el OK de Martín antes de pasar a la siguiente. Hechas: Login,
 Entidades, Inicio (dashboard con gráfico de ingresos/egresos), Cuentas
 (resumen + cuenta corriente por entidad, entregas 15 y 16), listado de
 Remitos (entrega 18, junto con la numeración automática `0001-00000015`
-asignada al emitir), Nuevo remito con autoguardado y detalle (entregas 19 a 21), Productos y Unidades de medida (entregas 22 y 23). Datos siempre reales de la API, no mocks. Pendientes de
-rediseño:
-Tareas (todavía con el estilo viejo y `components/Nav.tsx`).
+asignada al emitir), Nuevo remito con autoguardado y detalle (entregas 19 a 21), Productos y Unidades de medida (entregas 22 y 23) y Tareas (entrega 24).
+**El rediseño está completo**: todas las pantallas del MVP usan el diseño
+nuevo. Datos siempre reales de la API, no mocks.
 
 Cómo se trabaja el rediseño (validado con Martín, mantenerlo):
 - Una pantalla por vez; al terminar, probarla en el navegador en 375 / 768 /
@@ -83,8 +83,9 @@ Backend `npm run start:dev` (tarda ~25s en quedar arriba), frontend
 `password123` (empresa B, para probar aislamiento).
 
 ## Próximo paso
-Remitos (entregas 18-21), Productos y Unidades de medida (22-23) terminados. Sigue
-Tareas, la última pantalla con el estilo viejo. Next.js ya está en 16.3.7
+Rediseño completo (entregas 15 a 24). Candidatos para seguir: UI de Reportes
+(el backend ya está), refresh automático de sesión (hoy vence a los 45 min),
+envío real de notificaciones. Next.js ya está en 16.3.7
 (parche de seguridad, ver NOTAS.md entrega 17).
 Pendiente aparte, no bloqueante: envío real de notificaciones por
 email/SMS/WhatsApp (necesita decidir proveedor). Ver NOTAS.md entrega 13
